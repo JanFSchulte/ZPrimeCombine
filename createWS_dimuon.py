@@ -3,28 +3,70 @@ ROOT.gROOT.SetBatch(True)
 
 from ROOT import *
 
+nBkg = 1
+
+def signalEffUncert(mass):
+
+	return [0.96,1.01]
 
 
-def main():
+
+def provideUncertainties(mass):
+
+	result = {}
+
+	result["sigEff"] = signalEffUncert(mass)
+	result["massScale"] = 0.01
+	result ["bkgUncert"] = 0
+	
+	return result
+
+
+def getBackgroundYields(mass):
+
+	return [8464]
+
+def createWS(massVal,minNrEv,name):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-#	ROOT.gSystem.AddIncludePath("-Ishapes")
+#	ROOT.gSystem.AddIncludePath("-Ishapes"
+	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+
 	import glob
 	for f in glob.glob("shapes/*.cxx"):
 		gROOT.ProcessLine(".L "+f+"+")
 	
+	
+	with open("data.txt") as f:
+		masses = f.readlines()
+	massDiffs = []
+	for evMass in masses:
+		massDiffs.append(abs(float(evMass)-massVal)) 
+	massDiffs = sorted(massDiffs)
+	
+	if minNrEv < len(massDiffs):
+		massDiff = massDiffs[minNrEv]
+	massLow = massVal - massDiff
+	massHigh = massVal + massDiff
 
-	ws = RooWorkspace("dimuon_13TeV")
+	width = 0.016
 
-	mass = RooRealVar('mass','mass',1000.0, 200.0, 5000.)
+	if (massVal-6*width*massVal) < massLow:
+		massLow = massVal - 6*width*massVal
+	if (massVal+6*width*massVal) > massHigh:
+		massHigh = massVal + 6*width*massVal
+
+	ws = RooWorkspace("dimuon")
+	
+	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
-	peak = RooRealVar("peak","peak",2000.0, 200.0, 5000.)
+	peak = RooRealVar("peak","peak",massVal, massLow, massHigh)
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 	
-	ws.factory('Gaussian:sig_pdf_dimuon(mass,peak,0.1*peak)')	
-
+	#ws.factory('Gaussian:sig_pdf_dimuon(mass,peak,0.1*peak)')	
+	ws.factory("Voigtian::sig_pdf_dimuon(mass, peak, 0.016*peak, 0.1*peak)")
 	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
 	bkg_b = RooRealVar('bkg_b','bkg_b',-3.614E-4)
 	bkg_c = RooRealVar('bkg_c','bkg_c',-1.470E-7)
@@ -50,21 +92,17 @@ def main():
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	print " - loading Background shape"
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
-
 
 	ds = RooDataSet.read("data.txt",RooArgList(mass))
 	ds.SetName('data_dimuon')
 	ds.SetTitle('data_dimuon')
-	print "    Data loaded with %d entries" %(ds.numEntries())
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())
 
 #	ws.addClassDeclImportDir("shapes/")	
-	ws.importClassCode("ZPrimeMuonBkgPdf")	
+	ws.importClassCode()	
 
-	ws.Print()
 
-	ws.writeToFile("ws.root",True)
+	ws.writeToFile("%s.root"%name,True)
 
-main()
+

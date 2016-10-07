@@ -4,10 +4,10 @@ def main():
 
 
 
-	ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-	f = ROOT.TFile("shapesCard.root")
+	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
+	f = ROOT.TFile("p.root")
 
-	ws = f.Get("w")
+	ws = f.Get("hmumu")
 
 	ws.Print()
 

@@ -3,6 +3,8 @@ import subprocess
 import time
 import os
 import sys
+sys.path.append('cfgs/')
+sys.path.append('input/')
 
 def get_git_revision_hash():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
@@ -122,25 +124,29 @@ def main():
 	parser = argparse.ArgumentParser(description='Data writer for Zprime -> ll analysis interpretation in combine')
 	parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
+	parser.add_argument("-o", "--options", dest = "options", default="", help="name of config file")
+	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
 				
-	args = parser.parse_args()		
-	
-	from scanConfiguration import config
+	args = parser.parse_args()	
 
-	
+	configName = "scanConfiguration_%s"%args.options
+	config =  __import__(configName)
+
 	moduleName = "createWS_%s"%args.chan
-
 	module =  __import__(moduleName)
 
 	if not os.path.exists(config.cardDir):
     		os.makedirs(config.cardDir)
-	
-	for massRange in config.masses:
+	if args.mass > 0:
+		masses = [[5,args.mass,args.mass]]
+	else:
+		masses = config.masses	
+	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
 			print "write datacard and workspace for m=%d GeV"%mass
 			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
-			module.createWS(mass,100, name)
+			bkgYields = [module.createWS(mass,100, name)]
 
 			nBkg = module.nBkg 
 
@@ -167,7 +173,6 @@ def main():
 			channelDict["sigShape"] = getSignalShape(args.binned,"%s.root"%name,args.chan)
 			channelDict["data"] = getDataset(args.binned,"%s.root"%name,args.chan)
 			
-			bkgYields = module.getBackgroundYields(mass)
 			channelDict["channels"]	= getChannelBlock(nBkg,bkgYields,args.chan)		
 
 			uncertBlock = ""

@@ -144,7 +144,6 @@ def main():
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
-			print "write datacard and workspace for m=%d GeV"%mass
 			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
 			bkgYields = [module.createWS(mass,100, name)]
 

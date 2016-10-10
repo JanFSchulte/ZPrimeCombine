@@ -5,6 +5,34 @@ import argparse
 import subprocess
 
 
+def summarizeConfig(config,args):
+	print "      "
+	print "Z' -> ll statistics tool based on Higgs Combine"
+	print "               "
+	print "------- Configuration Summary --------"
+	if config.significance:
+		print "Calculation of significances requested"
+	else:
+		print "Limit calculation requested"
+		print "MCMC configuration: iterations %d toys: %d"%(config.numInt,config.numToys)
+	channelList = ""
+	for channel in config.channels:
+		channelList += " %s "%(channel)
+	print "Consider channels: %s"%channelList
+	systList = "" 
+	for syst in config.systematics:
+		systList += " %s "%(syst)
+	print "Systematic uncertainties: %s"%systList
+	if args.mass > 0:
+		print "run for single mass point at %d GeV"%args.mass
+	
+	else:
+		print "Mass scan configuration: "
+		for massRange in config.masses:
+			print "from %d to %d in %d GeV steps"%(massRange[1],massRange[2],massRange[0])
+	print "data cards and workspaces are saved in %s"%config.cardDir	
+	print "--------------------------------------"
+	print "                                      "
 def main():
 
         parser = argparse.ArgumentParser(description='Steering tool for Zprime -> ll analysis interpretation in combine')
@@ -19,16 +47,17 @@ def main():
         configName = "scanConfiguration_%s"%args.config
 
         config =  __import__(configName)
-
+	summarizeConfig(config,args)
 	if args.redo:
 		for channel in config.channels:
+			print "writing datacards and workspaces for channel %s ...."%channel
 			if args.mass > 0:	
 				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass])
 			else:	
 				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,g])
-
+		print "done!"
 		if len(config.channels) > 1:
-			print "writing combined channel datacards"
+			print "writing combined channel datacards ...."
 		        if args.mass > 0:
                 		masses = [[5,args.mass,args.mass]]
         		else:

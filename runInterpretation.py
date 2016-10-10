@@ -28,9 +28,24 @@ def main():
 				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,g])
 
 		if len(config.channels) > 1:
-			print "implement some combining"
+			print "writing combined channel datacards"
+		        if args.mass > 0:
+                		masses = [[5,args.mass,args.mass]]
+        		else:
+                		masses = config.masses
+		        for massRange in masses:
+                		mass = massRange[1]
+                		while mass <= massRange[2]:
+					command = ["combineCards.py"]	
+					for channel in config.channels:
+						command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
+					
+					outName = "%s/%s_combined_%d.txt"%(config.cardDir,args.config,mass)
+					with open('%s'%outName, "w") as outfile:
+    						subprocess.call(command, stdout=outfile,cwd=config.cardDir)
+					mass += massRange[0]			
 
-
+			print "done!"
 	outDir = "results_%s"%args.config
         if not os.path.exists(outDir):
                 os.makedirs(outDir)
@@ -54,9 +69,10 @@ def main():
 			
 				if not config.significance:
 					print "calculate limit for mass %d"%mass
-
-					cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
-					
+					if len(config.channels) == 1:
+						cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+					else:
+						cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
 					subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
 					
 					resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)

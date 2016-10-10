@@ -10,6 +10,28 @@ def get_git_revision_hash():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
 
+def printProgress (iteration, total, prefix = '', suffix = '', decimals = 2, barLength = 100):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : number of decimals in percent complete (Int)
+        barLength   - Optional  : character length of bar (Int)
+    """
+    filledLength    = int(round(barLength * iteration / float(total)))
+    percents        = round(100.00 * (iteration / float(total)), decimals)
+    bar             = '%' * filledLength + '-' * (barLength - filledLength)
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+    sys.stdout.flush()
+    if iteration == total:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+
+
+
 cardTemplate='''
 ##Data card for Zprime -> ll analysis, created on %(date)s at %(time)s using revision %(hash)s of the package
 imax 1  number of channels
@@ -129,6 +151,13 @@ def main():
 				
 	args = parser.parse_args()	
 
+
+        import glob
+	from ROOT import gROOT
+        for f in glob.glob("userfuncs/*.cxx"):
+                gROOT.ProcessLine(".L "+f+"+")
+
+
 	configName = "scanConfiguration_%s"%args.options
 	config =  __import__(configName)
 
@@ -141,6 +170,13 @@ def main():
 		masses = [[5,args.mass,args.mass]]
 	else:
 		masses = config.masses	
+	nMasses = 0	
+	for massRange in masses:
+		mass = massRange[1]
+		while mass <= massRange[2]:
+			nMasses +=1
+			mass += massRange[0]
+	i = 1
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
@@ -182,6 +218,7 @@ def main():
 			channelDict["systs"] = uncertBlock
 
 			writeCard(cardTemplate % channelDict, name)
-
+			printProgress(i, nMasses, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
+			i += 1
 			mass += massRange[0]
 main()

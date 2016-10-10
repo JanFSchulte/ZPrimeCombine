@@ -94,6 +94,7 @@ def main():
 
         parser = argparse.ArgumentParser(description='Steering tool for Zprime -> ll analysis interpretation in combine')
         parser.add_argument("-r", "--redo", action="store_true", default=False, help="recreate datacards and workspaces for this configuration")
+        parser.add_argument("-w", "--write", action="store_true", default=False, help="create datacards and workspaces for this configuration")
         parser.add_argument("-s", "--submit", action="store_true", default=False, help="submit jobs to cluster/GRID")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
@@ -106,13 +107,13 @@ def main():
 
         config =  __import__(configName)
 	summarizeConfig(config,args)
-	if args.redo:
+	if args.redo or args.write:
 		for channel in config.channels:
 			print "writing datacards and workspaces for channel %s ...."%channel
 			if args.mass > 0:	
 				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass])
 			else:	
-				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,g])
+				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config])
 		print "done!"
 		if len(config.channels) > 1:
 			print "writing combined channel datacards ...."
@@ -133,6 +134,8 @@ def main():
 					mass += massRange[0]			
 
 			print "done!"
+	if args.write:
+		sys.exit()
 	outDir = "results_%s"%args.config
         if not os.path.exists(outDir):
                 os.makedirs(outDir)

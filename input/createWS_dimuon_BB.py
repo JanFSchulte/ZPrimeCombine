@@ -1,6 +1,6 @@
 import ROOT,sys
 ROOT.gROOT.SetBatch(True)
-
+ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
 
 nBkg = 1
@@ -53,7 +53,7 @@ def createWS(massVal,minNrEv,name):
 
 	import glob
 	for f in glob.glob("userfuncs/*.cxx"):
-		gROOT.ProcessLine(".L "+f+"+")
+		ROOT.gSystem.Load(f)
 	
 	
 	with open("input/dimuon_13TeV_2016_ICHEPDataset_BB.txt") as f:

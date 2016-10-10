@@ -1,6 +1,6 @@
 import ROOT,sys
 ROOT.gROOT.SetBatch(True)
-
+ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
 
 nBkg = 1
@@ -31,7 +31,10 @@ def signalEffUncert(mass):
 
         effPart = max(0.,min(1.,1.003 -0.000132*mass-0.000000024*mass*mass)) -1.
         trigPart = (0.972352522752 + -3.34032692503e-06*mass + 1.61745590874e-10*mass*mass) / (0.981606029688 + -1.39766860383e-05*mass + -9.42079658943e-09*mass*mass) -1.
-        return [1. - ( effPart**2 + trigPart**2 )**0.5,1.01]
+        uncertNeg = 1. - ( effPart**2 + trigPart**2 )**0.5
+	if uncertNeg < 0.01:
+		uncertNet = 0.01
+	return [1. - uncertNeg,1.01]
 
 
 def provideUncertainties(mass):
@@ -53,7 +56,7 @@ def createWS(massVal,minNrEv,name):
 
 	import glob
 	for f in glob.glob("userfuncs/*.cxx"):
-		gROOT.ProcessLine(".L "+f+"+")
+		gSystem.Load(f)
 	
 	
 	with open("input/dimuon_13TeV_2016_ICHEPDataset_BEneg.txt") as f:

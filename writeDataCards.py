@@ -37,7 +37,7 @@ observation -1.
 '''
 
 
-def getChannelBlock(nBkgs,bkgYields,chan):
+def getChannelBlock(nBkgs,bkgYields,signalScale,chan):
 
 	result = "bin %s"%chan
 	for i in range(0,nBkgs):
@@ -54,7 +54,7 @@ def getChannelBlock(nBkgs,bkgYields,chan):
 	for i in range(0,nBkgs):
 		result+=" %d"%(i+1)
 	result +="\n"
-	result += "rate         1.000 "
+	result += "rate         %.2f "%signalScale
 	for i in range (0, nBkgs):
 		result+= " %.2f"%bkgYields[i]
 	return result
@@ -146,7 +146,7 @@ def main():
 		while mass <= massRange[2]:
 			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
 			bkgYields = [module.createWS(mass,100, name)]
-
+			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 
 						
@@ -172,7 +172,7 @@ def main():
 			channelDict["sigShape"] = getSignalShape(args.binned,"%s.root"%name,args.chan)
 			channelDict["data"] = getDataset(args.binned,"%s.root"%name,args.chan)
 			
-			channelDict["channels"]	= getChannelBlock(nBkg,bkgYields,args.chan)		
+			channelDict["channels"]	= getChannelBlock(nBkg,bkgYields,signalScale,args.chan)		
 
 			uncertBlock = ""
 			uncerts = module.provideUncertainties(mass)

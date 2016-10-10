@@ -5,31 +5,25 @@ from ROOT import *
 
 nBkg = 1
 
+def provideSignalScaling(mass):
+        nz   = 7262                      #From Alexander (80X prompt)
+        nsig_scale = 1394.4287350394588  # prescale/eff_z (123.685828798/0.0887) -->derives the lumi 
+        eff = signalEff(mass)
+        result =(nsig_scale*nz*eff)
+	return result	
 
-def signalEff(ws,mass):
+def signalEff(mass):
 
-	trig_a = RooRealVar('trig_a','trig_a',0.9712)
-	trig_b = RooRealVar('trig_b','trig_b',3.1063E-07)
-	trig_c = RooRealVar('trig_c','trig_c',0.)
+        trig_a = 0.9712
+        trig_b = 3.1063E-07
+        trig_c = 0.
 
-	eff_a     = RooRealVar('eff_a','eff_a',0.215)
-	eff_b     = RooRealVar('eff_b','eff_b',-6.65E05)
-	eff_c     = RooRealVar('eff_c','eff_c',0)
-	eff_d     = RooRealVar('eff_d','eff_d',-5.617977528089888e-09)
-	eff_a.setConstant()
-	eff_b.setConstant()
-	eff_c.setConstant()
-	eff_d.setConstant()
-	
-	getattr(ws,'import')(eff_a,ROOT.RooCmdArg())
-	getattr(ws,'import')(eff_b,ROOT.RooCmdArg())
-	getattr(ws,'import')(eff_c,ROOT.RooCmdArg())
-	getattr(ws,'import')(eff_d,ROOT.RooCmdArg())
-	ws.factory("ZPrimeMuonAccEffFunc::eff(peak, eff_scale, eff_a, eff_b, eff_c, eff_d,trig_a,trig_b,trig_c)")
+        eff_a     = 0.215
+        eff_b     = -6.65E05
+        eff_c     = 0.
+        eff_d     = -5.617977528089888e-09
 
-	return ws.pdf("eff").getVal(mass)
-
-		
+	return (eff_a+eff_b/(mass+eff_c)**3+(mass)**2*eff_d)*(trig_a + trig_b*mass + trig_c*mass*mass)	
 
 def signalEffUncert(mass):
 

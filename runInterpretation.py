@@ -28,7 +28,7 @@ def runLocalLimits(args,config,outDir):
 				resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
 				
 			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
-		mass += massRange[0]
+			mass += massRange[0]
 
 def runLocalSignificance(args,config,outDir):
 	if args.mass > 0:

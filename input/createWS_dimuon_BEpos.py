@@ -8,24 +8,24 @@ nBkg = 1
 
 def signalEff(ws,mass):
 
-	trig_a = RooRealVar('trig_a','trig_a',0.9878)
-	trig_b = RooRealVar('trig_b','trig_b',-7.8162E-08)
-	trig_c = RooRealVar('trig_c','trig_c',0.)	
+	trig_a = RooRealVar('trig_a','trig_a',0.9712)
+	trig_b = RooRealVar('trig_b','trig_b',3.1063E-07)
+	trig_c = RooRealVar('trig_c','trig_c',0.)
 
-	eff_a     = RooRealVar('eff_a','eff_a',1.54)
-	eff_b     = RooRealVar('eff_b','eff_b',-6.72E3)
-	eff_c     = RooRealVar('eff_c','eff_c',4.69E3) 
-	eff_d     = RooRealVar('eff_d','eff_d',-6.08E-5)
+	eff_a     = RooRealVar('eff_a','eff_a',0.215)
+	eff_b     = RooRealVar('eff_b','eff_b',-6.65E05)
+	eff_c     = RooRealVar('eff_c','eff_c',0)
+	eff_d     = RooRealVar('eff_d','eff_d',-5.617977528089888e-09)
 	eff_a.setConstant()
 	eff_b.setConstant()
 	eff_c.setConstant()
 	eff_d.setConstant()
+	
 	getattr(ws,'import')(eff_a,ROOT.RooCmdArg())
 	getattr(ws,'import')(eff_b,ROOT.RooCmdArg())
 	getattr(ws,'import')(eff_c,ROOT.RooCmdArg())
 	getattr(ws,'import')(eff_d,ROOT.RooCmdArg())
-	ws.factory("ZPrimeMuonAccEffFuncBEpos::eff(peak, eff_scale, eff_a, eff_b, eff_c, eff_d,trig_a,trig_b,trig_c)")
-
+	ws.factory("ZPrimeMuonAccEffFunc::eff(peak, eff_scale, eff_a, eff_b, eff_c, eff_d,trig_a,trig_b,trig_c)")
 
 	return ws.pdf("eff").getVal(mass)
 
@@ -33,7 +33,10 @@ def signalEff(ws,mass):
 
 def signalEffUncert(mass):
 
-	return [0.96,1.01]
+
+	effDown =  1. - (0.04**2 + ((0.971242305389  + 3.10628148131e-07*mass ) / (0.987369135229 + -3.75634851186e-05*mass + 2.48504956152e-09*mass*mass) -1.)**2)**0.5
+
+	return [effDown,1.01]
 
 
 
@@ -59,7 +62,7 @@ def createWS(massVal,minNrEv,name):
 		gROOT.ProcessLine(".L "+f+"+")
 	
 	
-	with open("input/data.txt") as f:
+	with open("input/dimuon_13TeV_2016_ICHEPDataset_BEpos.txt") as f:
 		masses = f.readlines()
 	massDiffs = []
 	for evMass in masses:
@@ -78,7 +81,7 @@ def createWS(massVal,minNrEv,name):
 	if (massVal+6*width*massVal) > massHigh:
 		massHigh = massVal + 6*width*massVal
 
-	ws = RooWorkspace("dimuon")
+	ws = RooWorkspace("dimuon_BEpos")
 	
 	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
@@ -89,10 +92,10 @@ def createWS(massVal,minNrEv,name):
 	
 	### configure resolution	
 
-        res_p0 = RooRealVar('res_p0','res_p0',1.9E-02)
-        res_p1 = RooRealVar('res_p1','res_p1',2.4E-05)
-        res_p2 = RooRealVar('res_p2','res_p2',-2.4E-09)
-
+	res_p0 = RooRealVar('res_p0','res_p0',2.7E-02)
+	res_p1 = RooRealVar('res_p1','res_p1',3.3E-05)
+	res_p2 = RooRealVar('res_p2','res_p2',-1.9E-09)
+ 
         res_p0.setConstant()
         res_p1.setConstant()
         res_p2.setConstant()
@@ -116,14 +119,14 @@ def createWS(massVal,minNrEv,name):
 
 	### define signal shape
 
-	ws.factory("Voigtian::sig_pdf_dimuon(mass, peak, width, sigma)")
+	ws.factory("Voigtian::sig_pdf_dimuon_BEpos(mass, peak, width, sigma)")
 
+	bkg_a = RooRealVar('bkg_a','bkg_a',23.86)
+	bkg_b = RooRealVar('bkg_b','bkg_b',-2.616E-3)
+	bkg_c = RooRealVar('bkg_c','bkg_c',2.743E-7)
+	bkg_d = RooRealVar('bkg_d','bkg_d',-2.527E-11)
+	bkg_e = RooRealVar('bkg_e','bkg_e',-3.286)
 
-	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
-	bkg_b = RooRealVar('bkg_b','bkg_b',-3.614E-4)
-	bkg_c = RooRealVar('bkg_c','bkg_c',-1.470E-7)
-	bkg_d = RooRealVar('bkg_d','bkg_d',6.885E-12)
-	bkg_e = RooRealVar('bkg_e','bkg_e',-4.196)
 	bkg_a.setConstant()
 	bkg_b.setConstant()
 	bkg_c.setConstant()
@@ -144,11 +147,11 @@ def createWS(massVal,minNrEv,name):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEpos(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
-	ds = RooDataSet.read("input/data.txt",RooArgList(mass))
-	ds.SetName('data_dimuon')
-	ds.SetTitle('data_dimuon')
+	ds = RooDataSet.read("input/dimuon_13TeV_2016_ICHEPDataset_BB.txt",RooArgList(mass))
+	ds.SetName('data_dimuon_BEpos')
+	ds.SetTitle('data_dimuon_BEpos')
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())
 
 #	ws.addClassDeclImportDir("shapes/")	
@@ -157,4 +160,4 @@ def createWS(massVal,minNrEv,name):
 
 	ws.writeToFile("%s.root"%name,True)
 
-	return ws.data("data_dimuon").sumEntries()
+	return ws.data("data_dimuon_BEpos").sumEntries()

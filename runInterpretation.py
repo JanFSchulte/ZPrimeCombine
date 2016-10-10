@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append('cfgs/')
 import argparse
 import subprocess
@@ -28,6 +29,11 @@ def main():
 
 		if len(config.channels) > 1:
 			print "implement some combining"
+
+
+	outDir = "results_%s"%args.config
+        if not os.path.exists(outDir):
+                os.makedirs(outDir)
 	
 	if args.submit:
 		print "implement some submission tools"
@@ -52,6 +58,8 @@ def main():
 					cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
 					
 					subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-			
+					
+					resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
+					subprocess.call(["mv","%s"%resultFile,"%s"%outDir])		
 	                        mass += massRange[0]
 main()

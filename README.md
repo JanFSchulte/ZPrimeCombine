@@ -3,9 +3,13 @@ Tools to perform statistical analyses for the Z' -> ll analysis using the Higgs 
 
 ## Current combine installation recipe:
 export SCRAM_ARCH=slc6_amd64_gcc491
+
 cmsrel CMSSW_7_4_7
+
 cd CMSSW_7_4_7/src 
+
 cmsenv
+
 git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
  
 cd $CMSSW_BASE/src/HiggsAnalysis/CombinedLimit;
@@ -18,7 +22,9 @@ scramv1 b clean; scramv1 b
 
 ## General considerations:  
 This repository consits of python scripts fulfilling two purposes:
+
 1) Create datacards and ROOT files containing workspaces as input for combine,
+
 2) Serve as a user-friendly interface to execute combine in the appropriate configuration for limits and p-values/significance,
 
 This framework is under construction! 
@@ -46,9 +52,13 @@ The user has to configure two basics inputs to the system:
 Once the config files are in place, the interpretation can be run by calling runInterpretation.py (such creativity, much wow). Most important arguments for this tool are:
 
 -c specifies name of the scanConfiguratin to be use
+
 -s launches submission to some computing resources, to be implemented
+
 -r re-writes the datacards and workspaces - has to be used the first time a new config is used
+
 -m specifies a signel mass point to be run
+
 -e runs expected limits instead of observed ones. Does nothing when computing significances
 
 

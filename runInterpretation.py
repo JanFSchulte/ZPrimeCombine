@@ -111,12 +111,11 @@ def main():
 						subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
 					else:	
 						subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-					
-					resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
-					resultFileRenamed = "higgsCombine%s.MarkovChainMC_Expected.mH%d.root"%(args.config,mass)
-					if args.expected:
-						subprocess.call(["mv","%s"%resultFile,"%s/%s"%(outDir,resultFileRenamed)])
-					else:		
-						subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
+					if args.expected:	
+						resultFile = "higgsCombine%s.MarkovChainMC.mH%d.123456.root"%(args.config,mass)
+					else:
+						resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
+						
+					subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
 	                        mass += massRange[0]
 main()

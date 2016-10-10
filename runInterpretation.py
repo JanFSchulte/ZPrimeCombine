@@ -5,6 +5,59 @@ import argparse
 import subprocess
 
 
+def runLocalLimits(args,config,outDir):
+	if args.mass > 0:
+      		masses = [[5,args.mass,args.mass]]
+        else:
+                masses = config.masses
+	for massRange in masses:
+		mass = massRange[1]
+		while mass <= massRange[2]:
+			print "calculate limit for mass %d"%mass
+			if len(config.channels) == 1:
+				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+			else:
+				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
+			if args.expected:
+				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+			else:	
+				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+			if args.expected:	
+				resultFile = "higgsCombine%s.MarkovChainMC.mH%d.123456.root"%(args.config,mass)
+			else:
+				resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
+				
+			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
+		mass += massRange[0]
+
+def runLocalSignificance(args,config,outDir):
+	if args.mass > 0:
+      		masses = [[5,args.mass,args.mass]]
+        else:
+                masses = config.masses
+	for massRange in masses:
+		mass = massRange[1]
+		while mass <= massRange[2]:
+			print "calculate significance for mass %d"%mass
+			if len(config.channels) == 1:
+				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+			else:
+				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
+			if args.expected:
+				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+			else:	
+				subprocess.call(["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+			if args.expected:	
+				resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.123456.root"%(args.config,mass)
+			else:
+				resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.root"%(args.config,mass)
+			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
+			mass += massRange[0]
+
+
+
+
+
 def summarizeConfig(config,args):
 	print "      "
 	print "Z' -> ll statistics tool based on Higgs Combine"
@@ -91,31 +144,7 @@ def main():
 	else:
 		print "no submisson requested - running locally"
 		if config.significance:
-			print "significance calculation requested. Not implemented yet, sorry! "
-			sys.exit()	
-	        if args.mass > 0:
-        	        masses = [[5,args.mass,args.mass]]
-        	else:
-                	masses = config.masses
-	        for massRange in masses:
-	                mass = massRange[1]
-	                while mass <= massRange[2]:
-			
-				if not config.significance:
-					print "calculate limit for mass %d"%mass
-					if len(config.channels) == 1:
-						cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
-					else:
-						cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-					if args.expected:
-						subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-					else:	
-						subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-					if args.expected:	
-						resultFile = "higgsCombine%s.MarkovChainMC.mH%d.123456.root"%(args.config,mass)
-					else:
-						resultFile = "higgsCombine%s.MarkovChainMC.mH%d.root"%(args.config,mass)
-						
-					subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
-	                        mass += massRange[0]
+			runLocalSignificance(args,config,outDir)
+		else:
+			runLocalLimits(args,config,outDir)	
 main()

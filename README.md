@@ -34,9 +34,10 @@ Available functionality:
 - Calculation of observed and expcted limits
 - Calculation of local p-values/significances
 - Performing mass scans as well as single point operiation locally
+- Submission to Purdue computing cluster
 
 Functionality NOT yet availabe:
-- Submission to computing clusters/GRID
+- Submission to other computing clusters/GRID
 - Binned Analysis
 - Handleling of more than one background contribution
 - Plotting of the results

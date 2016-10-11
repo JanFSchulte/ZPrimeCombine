@@ -87,6 +87,13 @@ def submitLimits(args,config,outDir):
 
 	srcDir = os.getcwd()
 	os.chdir(srcDir+"/logFiles_%s"%args.config)
+	
+	Libs = ""
+	for library in config.libraries:
+        	Libs += "%s/userfuncs/%s "%(srcDir,library)
+
+
+
         for massRange in masses:
                 mass = massRange[1]
                 while mass <= massRange[2]:
@@ -99,9 +106,9 @@ def submitLimits(args,config,outDir):
                        
 			if config.submitTo == "Purdue":
 				if args.expected:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,Libs)
 				else:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass,Libs)
 				subprocess.call(subCommand,shell=True)			
 			
 			mass += massRange[0]

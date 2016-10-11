@@ -16,6 +16,20 @@ echo $NINT
 echo $NTOYS
 echo $NTOYSEXP
 echo $MASS
+
+ARGS=("$@")
+LIBPART=""
+END=$#
+for ((i=7;i<END;i++)); do
+    LIBPART+=" --LoadLibrary "
+    echo ${ARGS[$i]}
+    LIBPART+=${ARGS[$i]}
+done
+echo $LIBPART
+
+
+
+
 # PBS8parameters
 #PBS -q cms
 #PBS -N obslimit_$m-$DATE-$Run
@@ -99,9 +113,9 @@ ls
 zero=0;
 
 if [[ $NTOYSEXP -eq $zero ]]; then
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat --LoadLibrary $SRC/userfuncs/ZPrimeMuonBkgPdf_cxx.so --LoadLibrary $SRC/userfuncs/Pol2_cxx.so
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat $LIBPART
 else
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS -t $NTOYSEXP --prior flat --LoadLibrary $SRC/userfuncs/ZPrimeMuonBkgPdf_cxx.so --LoadLibrary $SRC/userfuncs/Pol2_cxx.so
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS -t $NTOYSEXP --prior flat $LIBPART
 fi
 
 #

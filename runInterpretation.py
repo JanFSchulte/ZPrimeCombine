@@ -19,10 +19,17 @@ def runLocalLimits(args,config,outDir):
 				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
 			else:
 				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-			if args.expected:
-				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-			else:	
-				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+			
+			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat"]
+			if args.expected: 
+				subCommand.append("-t")
+				subCommand.append("%d"%config.exptToys)
+			
+			for library in config.libraries:		
+				subCommand.append("--LoadLibrary")
+				subCommand.append("userfuncs/%s"%library)
+			subprocess.call(subCommand)
+
 			if args.expected:	
 				resultFile = "higgsCombine%s.MarkovChainMC.mH%d.123456.root"%(args.config,mass)
 			else:
@@ -44,10 +51,14 @@ def runLocalSignificance(args,config,outDir):
                                 cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
                         else:
                                 cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-                        if args.expected:
-                                subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-                        else:
-                                subprocess.call(["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+                       
+                        subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif"]
+			for library in config.libraries:
+                                subCommand.append("--LoadLibrary")
+                                subCommand.append("userfuncs/%s"%library)
+
+
+			subprocess.call(subCommand)
                         if args.expected:
                                 resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.123456.root"%(args.config,mass)
                         else:

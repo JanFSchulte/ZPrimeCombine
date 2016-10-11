@@ -4,6 +4,7 @@ sys.path.append('cfgs/')
 import argparse
 import subprocess
 
+supportedResources = ["Purdue"]
 
 def runLocalLimits(args,config,outDir):
 	if args.mass > 0:
@@ -39,22 +40,60 @@ def runLocalSignificance(args,config,outDir):
 		mass = massRange[1]
 		while mass <= massRange[2]:
 			print "calculate significance for mass %d"%mass
-			if len(config.channels) == 1:
-				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
-			else:
-				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-			if args.expected:
-				subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-			else:	
-				subprocess.call(["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
-			if args.expected:	
-				resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.123456.root"%(args.config,mass)
-			else:
-				resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.root"%(args.config,mass)
-			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
+                        if len(config.channels) == 1:
+                                cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+                        else:
+                                cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
+                        if args.expected:
+                                subprocess.call(["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys , "-t" , "%d"%config.exptToys ,  "--prior","flat","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+                        else:
+                                subprocess.call(["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/Pol2_cxx.so"])
+                        if args.expected:
+                                resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.123456.root"%(args.config,mass)
+                        else:
+                                resultFile = "higgsCombine%s.ProfileLikelihood.mH%d.root"%(args.config,mass)
+                        subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
+                        mass += massRange[0]
+
+
+def submitLimits(args,config,outDir):
+
+	print "Job submission requested"
+	if config.submitTo in supportedResources:
+		print "%s resources will be used"%config.submitTo
+	else:
+		print "Computing resource not supported at the moment. Supported resources are:"
+		for resource in supportedResources:
+			print resource
+		sys.exit()	
+        if args.mass > 0:
+                masses = [[5,args.mass,args.mass]]
+        else:
+                masses = config.masses
+
+	if not os.path.exists("logFiles_%s"%args.config):
+    		os.makedirs("logFiles_%s"%args.config)
+
+	srcDir = os.getcwd()
+	os.chdir(srcDir+"/logFiles_%s"%args.config)
+        for massRange in masses:
+                mass = massRange[1]
+                while mass <= massRange[2]:
+
+                        print "submit limit for mass %d"%mass
+                        if len(config.channels) == 1:
+                                cardName = config.channels[0] + "_%d"%mass + ".txt"
+                        else:
+                                cardName = args.config + "_combined" + "_%d"%mass + ".txt"
+                       
+			if config.submitTo == "Purdue":
+				if args.expected:
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass)
+				else:
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass)
+				subprocess.call(subCommand,shell=True)			
+			
 			mass += massRange[0]
-
-
 
 
 
@@ -141,9 +180,11 @@ def main():
                 os.makedirs(outDir)
 	
 	if args.submit:
-		print "implement some submission tools"
-
-
+		if config.significance:
+			print "Significance calculation supported only for local running"
+			sys.exit()
+		else:
+			submitLimits(args,config,outDir)
 	else:
 		print "no submisson requested - running locally"
 		if config.significance:

@@ -8,6 +8,8 @@ cardDir = "dataCards_ICHEPDimuon"
 channels = ["dimuon_BB","dimuon_BEpos","dimuon_BEneg"]
 numInt = 100000
 numToys = 10
-exptToys = 10000
+exptToys = 10
 significance = False
+
+submitTo = "Purdue"
 		

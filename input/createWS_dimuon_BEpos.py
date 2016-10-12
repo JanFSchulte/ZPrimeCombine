@@ -143,7 +143,7 @@ def createWS(massVal,minNrEv,name):
 	# background shape
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEpos(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
-	ds = RooDataSet.read("input/dimuon_13TeV_2016_ICHEPDataset_BB.txt",RooArgList(mass))
+	ds = RooDataSet.read("input/dimuon_13TeV_2016_ICHEPDataset_BEpos.txt",RooArgList(mass))
 	ds.SetName('data_dimuon_BEpos')
 	ds.SetTitle('data_dimuon_BEpos')
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())

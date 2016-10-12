@@ -124,7 +124,7 @@ def summarizeConfig(config,args):
 	print "Z' -> ll statistics tool based on Higgs Combine"
 	print "               "
 	print "------- Configuration Summary --------"
-	if config.significance:
+	if args.signif:
 		print "Calculation of significances requested"
 	else:
 		print "Limit calculation requested"
@@ -157,6 +157,7 @@ def main():
         parser.add_argument("-r", "--redo", action="store_true", default=False, help="recreate datacards and workspaces for this configuration")
         parser.add_argument("-w", "--write", action="store_true", default=False, help="create datacards and workspaces for this configuration")
         parser.add_argument("-s", "--submit", action="store_true", default=False, help="submit jobs to cluster/GRID")
+        parser.add_argument("--signif", action="store_true", default=False, help="run significance instead of limits")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
         parser.add_argument("-m", "--mass", dest = "mass", default = -1,type=int, help="mass point")
@@ -202,14 +203,14 @@ def main():
                 os.makedirs(outDir)
 	
 	if args.submit:
-		if config.significance:
+		if args.signif:
 			print "Significance calculation supported only for local running"
 			sys.exit()
 		else:
 			submitLimits(args,config,outDir)
 	else:
 		print "no submisson requested - running locally"
-		if config.significance:
+		if args.signif:
 			runLocalSignificance(args,config,outDir)
 		else:
 			runLocalLimits(args,config,outDir)	

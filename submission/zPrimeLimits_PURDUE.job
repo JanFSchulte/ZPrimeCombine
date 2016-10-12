@@ -113,9 +113,9 @@ ls
 zero=0;
 
 if [[ $NTOYSEXP -eq $zero ]]; then
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat $LIBPART
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat --rMax 200 $LIBPART
 else
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS -t $NTOYSEXP --prior flat $LIBPART
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries 1 -t $NTOYSEXP --prior flat --rMax 200 $LIBPART
 fi
 
 #

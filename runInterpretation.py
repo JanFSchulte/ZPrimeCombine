@@ -19,8 +19,12 @@ def runLocalLimits(args,config,outDir):
 				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
 			else:
 				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-			
-			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%config.numToys ,  "--prior","flat"]
+		
+			numToys = config.numToys
+			if args.expected:
+				numToys = 1
+	
+			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%numToys ,  "--prior","flat","--rMax","200"]
 			if args.expected: 
 				subCommand.append("-t")
 				subCommand.append("%d"%config.exptToys)

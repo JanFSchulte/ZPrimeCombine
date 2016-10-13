@@ -98,7 +98,7 @@ def getUncert(uncert, value, nBkgs, mass):
 		if value != 0:
 			print "non-standard background uncertainties not supported yet"
 			sys.exit()
-		result = "bkg_shapeUnc    lnU     -  "    
+		result = "bkg_shapeUnc    lnN     -  "    
 		for i in range(0, nBkgs):
 			result += "  1.4  "
 
@@ -181,7 +181,7 @@ def main():
 		mass = massRange[1]
 		while mass <= massRange[2]:
 			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
-			bkgYields = [module.createWS(mass,100, name)]
+			bkgYields = [module.createWS(mass,100, name,config.width)]
 			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 

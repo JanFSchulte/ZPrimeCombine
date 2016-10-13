@@ -45,7 +45,12 @@ def provideUncertainties(mass):
 	return result
 
 
-def createWS(massVal,minNrEv,name):
+
+def getResolution(mass):
+	
+	return 1.9E-02 + 2.4E-05*mass -2.4E-09*mass*mass
+
+def createWS(massVal,minNrEv,name,width):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
@@ -54,29 +59,16 @@ def createWS(massVal,minNrEv,name):
 	import glob
 	for f in glob.glob("userfuncs/*.cxx"):
 		ROOT.gSystem.Load(f)
-	
-	
-	with open("input/dimuon_13TeV_2016_ICHEPDataset_BB.txt") as f:
-		masses = f.readlines()
-	massDiffs = []
-	for evMass in masses:
-		massDiffs.append(abs(float(evMass)-massVal)) 
-	massDiffs = sorted(massDiffs)
-	
-	if minNrEv < len(massDiffs):
-		massDiff = massDiffs[minNrEv]
-	massLow = massVal - massDiff
-	massHigh = massVal + massDiff
 
-	width = 0.006
+	dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
-	if (massVal-6*width*massVal) < massLow:
-		massLow = massVal - 6*width*massVal
-	if (massVal+6*width*massVal) > massHigh:
-		massHigh = massVal + 6*width*massVal
+
+	effWidth = width + getResolution(massVal)
+	
+	from tools import getMassRange
+	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
 
 	ws = RooWorkspace("dimuon_BB")
-	
 	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
@@ -113,7 +105,7 @@ def createWS(massVal,minNrEv,name):
 
 	### define signal shape
 
-	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
+	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, %.3f)"%getResolution(massVal))
 
 
 	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
@@ -143,12 +135,12 @@ def createWS(massVal,minNrEv,name):
 	# background shape
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BB(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
-	ds = RooDataSet.read("input/dimuon_13TeV_2016_ICHEPDataset_BB.txt",RooArgList(mass))
+	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_dimuon_BB')
 	ds.SetTitle('data_dimuon_BB')
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())
 
-#	ws.addClassDeclImportDir("shapes/")	
+	ws.addClassDeclImportDir("shapes/")	
 	ws.importClassCode()	
 
 

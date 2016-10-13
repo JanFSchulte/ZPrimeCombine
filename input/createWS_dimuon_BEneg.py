@@ -6,8 +6,8 @@ from ROOT import *
 nBkg = 1
 
 def provideSignalScaling(mass):
-        nz   = 7262                      #From Alexander (80X prompt)
-        nsig_scale = 1394.4287350394588  # prescale/eff_z (123.685828798/0.0887) -->derives the lumi 
+        nz   = 14767                      #From Alexander (80X prompt)
+        nsig_scale = 1394.4287350394588  # prescale/eff_z (123.685828798/0.0887) -->derives th
         eff = signalEff(mass)
         result = (nsig_scale*nz*eff)
 	return result
@@ -46,7 +46,8 @@ def provideUncertainties(mass):
 	result ["bkgUncert"] = 0
 	
 	return result
-
+def getResolution(mass):
+	return 2.6E-02 + 3.2E-05*mass - 1.6E-09*mass*mass
 
 def createWS(massVal,minNrEv,name):
 
@@ -59,24 +60,13 @@ def createWS(massVal,minNrEv,name):
 		gSystem.Load(f)
 	
 	
-	with open("input/dimuon_13TeV_2016_ICHEPDataset_BEneg.txt") as f:
-		masses = f.readlines()
-	massDiffs = []
-	for evMass in masses:
-		massDiffs.append(abs(float(evMass)-massVal)) 
-	massDiffs = sorted(massDiffs)
-	
-	if minNrEv < len(massDiffs):
-		massDiff = massDiffs[minNrEv]
-	massLow = massVal - massDiff
-	massHigh = massVal + massDiff
+	dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BEneg.txt"
 
-	width = 0.006
+        effWidth = width + getResolution(massVal)
 
-	if (massVal-6*width*massVal) < massLow:
-		massLow = massVal - 6*width*massVal
-	if (massVal+6*width*massVal) > massHigh:
-		massHigh = massVal + 6*width*massVal
+        from tools import getMassRange
+        massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)
+
 
 	ws = RooWorkspace("dimuon_BEneg")
 	
@@ -144,7 +134,7 @@ def createWS(massVal,minNrEv,name):
 	# background shape
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEneg(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
-	ds = RooDataSet.read("input/dimuon_13TeV_2016_ICHEPDataset_BEneg.txt",RooArgList(mass))
+	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_dimuon_BEneg')
 	ds.SetTitle('data_dimuon_BEneg')
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())

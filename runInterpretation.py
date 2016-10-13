@@ -24,7 +24,7 @@ def runLocalLimits(args,config,outDir):
 			if args.expected:
 				numToys = 1
 	
-			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%numToys ,  "--prior","flat","--rMax","200"]
+			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%numToys ,  "--prior","flat","--rMax","300"]
 			if args.expected: 
 				subCommand.append("-t")
 				subCommand.append("%d"%config.exptToys)

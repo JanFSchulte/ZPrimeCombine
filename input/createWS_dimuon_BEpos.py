@@ -65,7 +65,9 @@ def createWS(massVal,minNrEv,name,width):
 
         from tools import getMassRange
         massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)
-
+	massLow = 200
+	massHigh = 5000
+	
 	ws = RooWorkspace("dimuon_BEpos")
 	
 	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )

@@ -31,10 +31,10 @@ def signalEffUncert(mass):
 
         effPart = max(0.,min(1.,1.003 -0.000132*mass-0.000000024*mass*mass)) -1.
         trigPart = (0.972352522752 + -3.34032692503e-06*mass + 1.61745590874e-10*mass*mass) / (0.981606029688 + -1.39766860383e-05*mass + -9.42079658943e-09*mass*mass) -1.
-        uncertNeg = 1. - ( effPart**2 + trigPart**2 )**0.5
+	uncertNeg = 1. - ( effPart**2 + trigPart**2 )**0.5
 	if uncertNeg < 0.01:
-		uncertNet = 0.01
-	return [1. - uncertNeg,1.01]
+		uncertNeg = 0.01
+	return [uncertNeg,1.01]
 
 
 def provideUncertainties(mass):
@@ -49,7 +49,7 @@ def provideUncertainties(mass):
 def getResolution(mass):
 	return 2.6E-02 + 3.2E-05*mass - 1.6E-09*mass*mass
 
-def createWS(massVal,minNrEv,name):
+def createWS(massVal,minNrEv,name,width):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
@@ -66,7 +66,9 @@ def createWS(massVal,minNrEv,name):
 
         from tools import getMassRange
         massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)
-
+	massLow = 200
+	massHigh = 5000
+	
 
 	ws = RooWorkspace("dimuon_BEneg")
 	

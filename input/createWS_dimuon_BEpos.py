@@ -65,11 +65,12 @@ def createWS(massVal,minNrEv,name,width):
 
         from tools import getMassRange
         massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)
-	massLow = 200
-	massHigh = 5000
-	
+
 	ws = RooWorkspace("dimuon_BEpos")
 	
+	massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200 , 5000 )
+	getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
+
 	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
@@ -135,6 +136,7 @@ def createWS(massVal,minNrEv,name,width):
 	
 	# background shape
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEpos(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_dimuon_BEpos')
@@ -146,5 +148,5 @@ def createWS(massVal,minNrEv,name,width):
 
 
 	ws.writeToFile("%s.root"%name,True)
-
-	return ws.data("data_dimuon_BEpos").sumEntries()
+        from tools import getBkgEstInWindow
+        return getBkgEstInWindow(ws,massLow,massHigh,dataFile)

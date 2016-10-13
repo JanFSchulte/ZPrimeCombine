@@ -20,3 +20,16 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 		massHigh = massVal + 6*effWidth*massVal
 
 	return massLow, massHigh
+
+
+def getBkgEstInWindow(ws,massLow,massHigh,dataFile):
+	import ROOT
+        with open(dataFile) as f:
+                masses = f.readlines()
+	nBkgTotal = len(masses)
+	ws.var("massFullRange").setRange("window",massLow,massHigh)
+	argSet = ROOT.RooArgSet(ws.var("massFullRange"))
+		
+	integral = ws.pdf("bkgpdf_fullRange").createIntegral(argSet,ROOT.RooFit.NormSet(argSet), ROOT.RooFit.Range("window"))
+	print integral.getVal()
+	return nBkgTotal*integral.getVal()

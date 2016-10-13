@@ -106,7 +106,8 @@ def createWS(massVal,minNrEv,name,width):
 
 	### define signal shape
 
-	ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass, peak, width, sigma)")
+	#ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass, peak, width, sigma)")
+	ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass, peak, width, %.3f)"%(massVal*getResolution(massVal)))
 
 	bkg_a = RooRealVar('bkg_a','bkg_a',21.24)
 	bkg_b = RooRealVar('bkg_b','bkg_b',-3.521E-3)

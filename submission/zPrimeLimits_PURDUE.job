@@ -9,7 +9,7 @@ NINT=$4
 NTOYS=$5
 NTOYSEXP=$6
 MASS=$7
-
+RANGE=$8
 echo ${SRC}
 echo $DATACARD
 echo $NINT
@@ -20,7 +20,7 @@ echo $MASS
 ARGS=("$@")
 LIBPART=""
 END=$#
-for ((i=7;i<END;i++)); do
+for ((i=8;i<END;i++)); do
     LIBPART+=" --LoadLibrary "
     echo ${ARGS[$i]}
     LIBPART+=${ARGS[$i]}
@@ -113,9 +113,9 @@ ls
 zero=0;
 
 if [[ $NTOYSEXP -eq $zero ]]; then
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat --rMax 200 $LIBPART
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat --rMax $RANGE $LIBPART
 else
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries 1 -t $NTOYSEXP --prior flat --rMax 200 $LIBPART
+combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries 1 -t $NTOYSEXP --prior flat --rMax $RANGE $LIBPART
 fi
 
 #

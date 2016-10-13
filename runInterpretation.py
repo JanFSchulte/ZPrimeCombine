@@ -6,6 +6,24 @@ import subprocess
 
 supportedResources = ["Purdue"]
 
+
+def getRange(mass):
+	
+	if 400 <= mass <= 500:
+		return 400
+	elif 500 < mass <= 600:
+		return 200
+	elif 600 < mass <= 700:
+		return 100
+	elif 700 < mass <= 800:
+		return 90
+	elif 800 < mass <= 1000:
+		return 50
+	elif 1000 < mass <= 2000:
+		return 20
+	else:
+		return 10
+
 def runLocalLimits(args,config,outDir):
 	if args.mass > 0:
       		masses = [[5,args.mass,args.mass]]
@@ -24,7 +42,7 @@ def runLocalLimits(args,config,outDir):
 			if args.expected:
 				numToys = 1
 	
-			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%numToys ,  "--prior","flat","--rMax","300"]
+			subCommand = ["combine","-M","MarkovChainMC","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "-i", "%d"%config.numInt, "--tries", "%d"%numToys ,  "--prior","flat","--rMax","%d"%getRange(mass)]
 			if args.expected: 
 				subCommand.append("-t")
 				subCommand.append("%d"%config.exptToys)
@@ -110,9 +128,9 @@ def submitLimits(args,config,outDir):
                        
 			if config.submitTo == "Purdue":
 				if args.expected:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),Libs)
 				else:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass,Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),Libs)
 				subprocess.call(subCommand,shell=True)			
 			
 			mass += massRange[0]

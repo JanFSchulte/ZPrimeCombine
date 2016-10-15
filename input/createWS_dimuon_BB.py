@@ -52,7 +52,7 @@ def getResolution(mass):
 	
 	return 1.9E-02 + 2.4E-05*mass -2.4E-09*mass*mass
 
-def createWS(massVal,minNrEv,name,width):
+def createWS(massVal,minNrEv,name,width,correlateMass):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
@@ -64,6 +64,10 @@ def createWS(massVal,minNrEv,name,width):
 
 	dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
+	if not correlateMass:
+		peakName = "_dimuon_BB"
+	else:
+		peakName = ""
 
 	effWidth = width + getResolution(massVal)
 	
@@ -78,7 +82,7 @@ def createWS(massVal,minNrEv,name,width):
 	mass = RooRealVar('mass_dimuon_BB','mass_dimuon_BB',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
-	peak = RooRealVar("peak_dimuon_BB","peak_dimuon_BB",massVal, massLow, massHigh)
+	peak = RooRealVar("peak%s"%peakName,"peak%s"%peakName,massVal, massLow, massHigh)
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 	
@@ -95,8 +99,8 @@ def createWS(massVal,minNrEv,name,width):
         getattr(ws,'import')(res_p1,ROOT.RooCmdArg())
         getattr(ws,'import')(res_p2,ROOT.RooCmdArg())
 
-        ws.factory("Pol2::sigma_rel(peak_dimuon_BB,res_p0,res_p1,res_p2)")
-        ws.factory("prod::sigma(sigma_rel, peak_dimuon_BB)")
+        ws.factory("Pol2::sigma_rel(peak%s,res_p0,res_p1,res_p2)"%peakName)
+        ws.factory("prod::sigma(sigma_rel, peak%s)"%peakName)
 
 	### configure instrinsic width
 
@@ -107,12 +111,12 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(width_p0,ROOT.RooCmdArg())
 	getattr(ws,'import')(width_p1,ROOT.RooCmdArg())
 
-	ws.factory("sum::width_dimuon_BB(width_p0, prod(width_p1,peak_dimuon_BB))")
+	ws.factory("sum::width_dimuon_BB(width_p0, prod(width_p1,peak%s))"%peakName)
 
 	### define signal shape
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
-	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass_dimuon_BB, peak_dimuon_BB, width_dimuon_BB, %.3f)"%(massVal*getResolution(massVal)))
+	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass_dimuon_BB, peak%s, width_dimuon_BB, %.3f)"%(peakName,massVal*getResolution(massVal)))
 
 
 	bkg_a = RooRealVar('bkg_a_dimuon_BB','bkg_a_dimuon_BB',28.51)

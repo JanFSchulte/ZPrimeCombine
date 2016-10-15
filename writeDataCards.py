@@ -106,13 +106,16 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate):
 			name = "bkg_unc"
 		else:
 			name = "bkg_unc_%s"%channel
-		result = "%s    lnN     -  "%name  
+		result = "%s    lnN    -  "%name  
 		for i in range(0, nBkgs):
 			result += "  1.4  "
 
 	if uncert == "massScale":
-
-		result = "peak_%s param %d %.2f" % (channel, mass, mass*value )
+		if correlate:
+			name = "peak"
+		else:
+			name = "peak_%s"%channel
+		result = "%s param %d %.2f" % (name, mass, mass*value )
 	result += "\n"		
         return result
 		
@@ -189,7 +192,7 @@ def main():
 		mass = massRange[1]
 		while mass <= massRange[2]:
 			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
-			bkgYields = [module.createWS(mass,100, name,config.width)]
+			bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
 			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 

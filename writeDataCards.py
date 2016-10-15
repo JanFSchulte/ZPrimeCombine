@@ -83,13 +83,17 @@ def getChannelBlock(nBkgs,bkgYields,signalScale,chan):
  
 
 
-def getUncert(uncert, value, nBkgs, mass):
+def getUncert(uncert, value, nBkgs, mass,channel,correlate):
 
 	if uncert == "sigEff":
+		if correlate:
+			name = "sig_effUnc"
+		else:
+			name = "sig_effUnc_%s"%channel
 	        if len(value) == 1:
-	                result = "sig_effUnc  lnN  %.2f"%value[0]
+	                result = "%s  lnN  %.2f"%(name,value[0])
 	        else:
-	                result = "sig_effUnc  lnN  %.2f/%.2f"%( value[0], value[1] )
+	                result = "%s  lnN  %.2f/%.2f"%(name, value[0], value[1] )
 
 		for i in range(0,nBkgs):
 	                result += "  -  "
@@ -98,13 +102,17 @@ def getUncert(uncert, value, nBkgs, mass):
 		if value != 0:
 			print "non-standard background uncertainties not supported yet"
 			sys.exit()
-		result = "bkg_shapeUnc    lnN     -  "    
+		if correlate:
+			name = "bkg_unc"
+		else:
+			name = "bkg_unc_%s"%channel
+		result = "%s    lnN     -  "%name  
 		for i in range(0, nBkgs):
 			result += "  1.4  "
 
 	if uncert == "massScale":
 
-		result = "peak param %d %.2f" % ( mass, mass*value )
+		result = "peak_%s param %d %.2f" % (channel, mass, mass*value )
 	result += "\n"		
         return result
 		
@@ -213,7 +221,7 @@ def main():
 			uncertBlock = ""
 			uncerts = module.provideUncertainties(mass)
 			for uncert in config.systematics:
-				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass)
+				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass,args.chan,config.correlate)
 			
 			channelDict["systs"] = uncertBlock
 

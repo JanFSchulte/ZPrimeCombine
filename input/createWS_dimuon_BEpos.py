@@ -6,7 +6,7 @@ from ROOT import *
 nBkg = 1
 
 def provideSignalScaling(mass):
-        nz   = 14980                      #From Alexander (80X prompt)
+        nz   = 14767                      #From Alexander (80X prompt)
         nsig_scale = 1394.4287350394588  # prescale/eff_z (123.685828798/0.0887) -->derives the lumi 
         eff = signalEff(mass)
         result =(nsig_scale*nz*eff)
@@ -30,7 +30,7 @@ def signalEffUncert(mass):
 
 	effDown =  1. - (0.04**2 + ((0.971242305389  + 3.10628148131e-07*mass ) / (0.987369135229 + -3.75634851186e-05*mass + 2.48504956152e-09*mass*mass) -1.)**2)**0.5
 
-	return [effDown,1.01]
+	return [1./effDown,1.01]
 
 
 
@@ -71,7 +71,7 @@ def createWS(massVal,minNrEv,name,width):
 	massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200 , 5000 )
 	getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
 
-	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
+	mass = RooRealVar('mass_dimuon_BEpos','mass_dimuon_BEpos',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
 	peak = RooRealVar("peak","peak",massVal, massLow, massHigh)
@@ -108,7 +108,7 @@ def createWS(massVal,minNrEv,name,width):
 	### define signal shape
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BEpos(mass, peak, width, sigma)")
-	ws.factory("Voigtian::sig_pdf_dimuon_BEpos(mass, peak, width, %.3f)"%(massVal*getResolution(massVal)))
+	ws.factory("Voigtian::sig_pdf_dimuon_BEpos(mass_dimuon_BEpos, peak, width, %.3f)"%(massVal*getResolution(massVal)))
 
 	bkg_a = RooRealVar('bkg_a','bkg_a',23.86)
 	bkg_b = RooRealVar('bkg_b','bkg_b',-2.616E-3)
@@ -136,7 +136,7 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEpos(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEpos(mass_dimuon_BEpos, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))

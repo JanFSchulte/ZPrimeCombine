@@ -29,7 +29,5 @@ def getBkgEstInWindow(ws,massLow,massHigh,dataFile):
 	nBkgTotal = len(masses)
 	ws.var("massFullRange").setRange("window",massLow,massHigh)
 	argSet = ROOT.RooArgSet(ws.var("massFullRange"))
-		
 	integral = ws.pdf("bkgpdf_fullRange").createIntegral(argSet,ROOT.RooFit.NormSet(argSet), ROOT.RooFit.Range("window"))
-	print integral.getVal()
 	return nBkgTotal*integral.getVal()

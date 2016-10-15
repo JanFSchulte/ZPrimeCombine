@@ -30,7 +30,9 @@ def signalEff(mass):
 
 def signalEffUncert(mass):
 
-	return [0.96,1.01]
+	effDown = 1.+(0.03**2 + 0.01**2)**0.5
+	
+	return [1./effDown,1.01]
 
 
 
@@ -73,7 +75,7 @@ def createWS(massVal,minNrEv,name,width):
         getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
 
 
-	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
+	mass = RooRealVar('mass_dimuon_BB','mass_dimuon_BB',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
 	peak = RooRealVar("peak","peak",massVal, massLow, massHigh)
@@ -110,7 +112,7 @@ def createWS(massVal,minNrEv,name,width):
 	### define signal shape
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
-	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, %.3f)"%(massVal*getResolution(massVal)))
+	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass_dimuon_BB, peak, width, %.3f)"%(massVal*getResolution(massVal)))
 
 
 	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
@@ -138,7 +140,7 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BB(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BB(mass_dimuon_BB, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))

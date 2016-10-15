@@ -6,8 +6,8 @@ from ROOT import *
 nBkg = 1
 
 def provideSignalScaling(mass):
-        nz   = 14767                      #From Alexander (80X prompt)
-        nsig_scale = 1394.4287350394588  # prescale/eff_z (123.685828798/0.0887) -->derives th
+        nz   = 14980                      #From Alexander (80X prompt)
+        nsig_scale = 1392.85843240991  # prescale/eff_z (123.685828798/0.0887) -->derives th
         eff = signalEff(mass)
         result = (nsig_scale*nz*eff)
 	return result
@@ -31,7 +31,8 @@ def signalEffUncert(mass):
 
         effPart = max(0.,min(1.,1.003 -0.000132*mass-0.000000024*mass*mass)) -1.
         trigPart = (0.972352522752 + -3.34032692503e-06*mass + 1.61745590874e-10*mass*mass) / (0.981606029688 + -1.39766860383e-05*mass + -9.42079658943e-09*mass*mass) -1.
-	uncertNeg = 1. - ( effPart**2 + trigPart**2 )**0.5
+	uncertNeg = 1. + ( effPart**2 + trigPart**2 )**0.5
+	uncertNeg = 1./uncertNeg
 	if uncertNeg < 0.01:
 		uncertNeg = 0.01
 	return [uncertNeg,1.01]
@@ -71,7 +72,7 @@ def createWS(massVal,minNrEv,name,width):
 	massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200 , 5000 )
 	getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
 
-	mass = RooRealVar('mass','mass',massVal, massLow, massHigh )
+	mass = RooRealVar('mass_dimuon_BEneg','mass_dimuon_BEneg',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
 	peak = RooRealVar("peak","peak",massVal, massLow, massHigh)
@@ -107,7 +108,7 @@ def createWS(massVal,minNrEv,name,width):
 	### define signal shape
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass, peak, width, sigma)")
-	ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass, peak, width, %.3f)"%(massVal*getResolution(massVal)))
+	ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass_dimuon_BEneg, peak, width, %.3f)"%(massVal*getResolution(massVal)))
 
 	bkg_a = RooRealVar('bkg_a','bkg_a',21.24)
 	bkg_b = RooRealVar('bkg_b','bkg_b',-3.521E-3)
@@ -134,7 +135,7 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEneg(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEneg(mass_dimuon_BEneg, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))

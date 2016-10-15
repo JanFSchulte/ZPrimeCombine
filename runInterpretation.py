@@ -20,9 +20,9 @@ def getRange(mass):
 	elif 800 < mass <= 1000:
 		return 50
 	elif 1000 < mass <= 2000:
-		return 20
+		return 50
 	else:
-		return 10
+		return 40
 
 def runLocalLimits(args,config,outDir):
 	if args.mass > 0:

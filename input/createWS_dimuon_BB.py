@@ -78,7 +78,7 @@ def createWS(massVal,minNrEv,name,width):
 	mass = RooRealVar('mass_dimuon_BB','mass_dimuon_BB',massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
 	
-	peak = RooRealVar("peak","peak",massVal, massLow, massHigh)
+	peak = RooRealVar("peak_dimuon_BB","peak_dimuon_BB",massVal, massLow, massHigh)
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 	
@@ -95,8 +95,8 @@ def createWS(massVal,minNrEv,name,width):
         getattr(ws,'import')(res_p1,ROOT.RooCmdArg())
         getattr(ws,'import')(res_p2,ROOT.RooCmdArg())
 
-        ws.factory("Pol2::sigma_rel(peak,res_p0,res_p1,res_p2)")
-        ws.factory("prod::sigma(sigma_rel, peak)")
+        ws.factory("Pol2::sigma_rel(peak_dimuon_BB,res_p0,res_p1,res_p2)")
+        ws.factory("prod::sigma(sigma_rel, peak_dimuon_BB)")
 
 	### configure instrinsic width
 
@@ -107,19 +107,19 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(width_p0,ROOT.RooCmdArg())
 	getattr(ws,'import')(width_p1,ROOT.RooCmdArg())
 
-	ws.factory("sum::width(width_p0, prod(width_p1,peak))")
+	ws.factory("sum::width_dimuon_BB(width_p0, prod(width_p1,peak_dimuon_BB))")
 
 	### define signal shape
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
-	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass_dimuon_BB, peak, width, %.3f)"%(massVal*getResolution(massVal)))
+	ws.factory("Voigtian::sig_pdf_dimuon_BB(mass_dimuon_BB, peak_dimuon_BB, width_dimuon_BB, %.3f)"%(massVal*getResolution(massVal)))
 
 
-	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
-	bkg_b = RooRealVar('bkg_b','bkg_b',-3.614E-4)
-	bkg_c = RooRealVar('bkg_c','bkg_c',-1.470E-7)
-	bkg_d = RooRealVar('bkg_d','bkg_d',6.885E-12)
-	bkg_e = RooRealVar('bkg_e','bkg_e',-4.196)
+	bkg_a = RooRealVar('bkg_a_dimuon_BB','bkg_a_dimuon_BB',28.51)
+	bkg_b = RooRealVar('bkg_b_dimuon_BB','bkg_b_dimuon_BB',-3.614E-4)
+	bkg_c = RooRealVar('bkg_c_dimuon_BB','bkg_c_dimuon_BB',-1.470E-7)
+	bkg_d = RooRealVar('bkg_d_dimuon_BB','bkg_d_dimuon_BB',6.885E-12)
+	bkg_e = RooRealVar('bkg_e_dimuon_BB','bkg_e_dimuon_BB',-4.196)
 	bkg_a.setConstant()
 	bkg_b.setConstant()
 	bkg_c.setConstant()
@@ -140,8 +140,8 @@ def createWS(massVal,minNrEv,name,width):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BB(mass_dimuon_BB, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
-	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BB(mass_dimuon_BB, bkg_a_dimuon_BB, bkg_b_dimuon_BB, bkg_c_dimuon_BB,bkg_d_dimuon_BB,bkg_e_dimuon_BB,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a_dimuon_BB, bkg_b_dimuon_BB, bkg_c_dimuon_BB,bkg_d_dimuon_BB,bkg_e_dimuon_BB,bkg_syst_a,bkg_syst_b)")		
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_dimuon_BB')

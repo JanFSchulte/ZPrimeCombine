@@ -14,4 +14,5 @@ numToys = 1
 exptToys = 100
 width = 0.006
 submitTo = "Purdue"
-		
+
+signalInjection = {"mass":2000,"width":0.006,"nEvents":20}		

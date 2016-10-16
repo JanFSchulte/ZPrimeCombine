@@ -24,7 +24,7 @@ def getRange(mass):
 	else:
 		return 40
 
-def runLocalLimits(args,config,outDir):
+def runLocalLimits(args,config,outDir,cardDir):
 	if args.mass > 0:
       		masses = [[5,args.mass,args.mass]]
         else:
@@ -34,9 +34,9 @@ def runLocalLimits(args,config,outDir):
 		while mass <= massRange[2]:
 			print "calculate limit for mass %d"%mass
 			if len(config.channels) == 1:
-				cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+				cardName = cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
 			else:
-				cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
+				cardName = cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
 		
 			numToys = config.numToys
 			if args.expected:
@@ -60,7 +60,7 @@ def runLocalLimits(args,config,outDir):
 			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
 			mass += massRange[0]
 
-def runLocalSignificance(args,config,outDir):
+def runLocalSignificance(args,config,outDir,cardDir):
 	if args.mass > 0:
       		masses = [[5,args.mass,args.mass]]
         else:
@@ -70,11 +70,11 @@ def runLocalSignificance(args,config,outDir):
 		while mass <= massRange[2]:
 			print "calculate significance for mass %d"%mass
                         if len(config.channels) == 1:
-                                cardName = config.cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
+                                cardName = cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
                         else:
-                                cardName = config.cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
+                                cardName = cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
                        
-                        subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif"]
+                        subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif" , "--pvalue"]
 			for library in config.libraries:
                                 subCommand.append("--LoadLibrary")
                                 subCommand.append("userfuncs/%s"%library)
@@ -107,13 +107,24 @@ def submitLimits(args,config,outDir):
 	if not os.path.exists("logFiles_%s"%args.config):
     		os.makedirs("logFiles_%s"%args.config)
 
-	srcDir = os.getcwd()
-	os.chdir(srcDir+"/logFiles_%s"%args.config)
+	if not args.inject:
+		srcDir = os.getcwd()
+		os.chdir(srcDir+"/logFiles_%s"%args.config)
+	else:
+		srcDir = os.getcwd()
+		if not os.path.exists("logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])):
+    			os.makedirs("logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]))
+		os.chdir(srcDir+"/logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]))
 	
 	Libs = ""
 	for library in config.libraries:
         	Libs += "%s/userfuncs/%s "%(srcDir,library)
 
+
+	if args.inject:
+		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+	else:
+		name = args.config
 
 
         for massRange in masses:
@@ -128,16 +139,16 @@ def submitLimits(args,config,outDir):
                        
 			if config.submitTo == "Purdue":
 				if args.expected:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),Libs)
 				else:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,args.config,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),Libs)
 				subprocess.call(subCommand,shell=True)			
 			
 			mass += massRange[0]
 
 
 
-def summarizeConfig(config,args):
+def summarizeConfig(config,args,cardDir):
 	print "      "
 	print "Z' -> ll statistics tool based on Higgs Combine"
 	print "               "
@@ -166,7 +177,7 @@ def summarizeConfig(config,args):
 		print "Mass scan configuration: "
 		for massRange in config.masses:
 			print "from %d to %d in %d GeV steps"%(massRange[1],massRange[2],massRange[0])
-	print "data cards and workspaces are saved in %s"%config.cardDir	
+	print "data cards and workspaces are saved in %s"%cardDir	
 	print "--------------------------------------"
 	print "                                      "
 def main():
@@ -177,6 +188,7 @@ def main():
         parser.add_argument("-s", "--submit", action="store_true", default=False, help="submit jobs to cluster/GRID")
         parser.add_argument("--signif", action="store_true", default=False, help="run significance instead of limits")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
+        parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
         parser.add_argument("-m", "--mass", dest = "mass", default = -1,type=int, help="mass point")
 
@@ -186,14 +198,29 @@ def main():
         configName = "scanConfiguration_%s"%args.config
 
         config =  __import__(configName)
-	summarizeConfig(config,args)
+
+
+	if args.inject:
+		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+	else:
+		cardDir = config.cardDir
+
+
+	summarizeConfig(config,args,cardDir)
 	if args.redo or args.write:
+
 		for channel in config.channels:
 			print "writing datacards and workspaces for channel %s ...."%channel
-			if args.mass > 0:	
-				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass])
-			else:	
-				subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config])
+			if args.inject:
+				if args.mass > 0:	
+					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass,"-i"])
+				else:	
+					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-i"])
+			else:
+				if args.mass > 0:	
+					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass])
+				else:	
+					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config])
 		print "done!"
 		if len(config.channels) > 1:
 			print "writing combined channel datacards ...."
@@ -208,15 +235,18 @@ def main():
 					for channel in config.channels:
 						command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
 					
-					outName = "%s/%s_combined_%d.txt"%(config.cardDir,args.config,mass)
+					outName = "%s/%s_combined_%d.txt"%(cardDir,args.config,mass)
 					with open('%s'%outName, "w") as outfile:
-    						subprocess.call(command, stdout=outfile,cwd=config.cardDir)
+						subprocess.call(command, stdout=outfile,cwd=cardDir)
 					mass += massRange[0]			
 
 			print "done!"
 	if args.write:
 		sys.exit()
-	outDir = "results_%s"%args.config
+	if args.inject:
+		outDir = "results_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+	else:
+		outDir = "results_%s"%args.config
         if not os.path.exists(outDir):
                 os.makedirs(outDir)
 	
@@ -229,7 +259,7 @@ def main():
 	else:
 		print "no submisson requested - running locally"
 		if args.signif:
-			runLocalSignificance(args,config,outDir)
+			runLocalSignificance(args,config,outDir,cardDir)
 		else:
-			runLocalLimits(args,config,outDir)	
+			runLocalLimits(args,config,outDir,cardDir)	
 main()

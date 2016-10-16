@@ -5,11 +5,11 @@ def main():
 
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-	f = ROOT.TFile("dataCards_ICHEPDimuon/dimuon_BB_400.root")
+	f = ROOT.TFile("dataCards_ICHEPBB_2000_0.0060_20/dimuon_BB_2000.root")
 
 	ws = f.Get("dimuon_BB")
 
-	frame = ws.var('mass').frame(ROOT.RooFit.Title('bla'))
+	frame = ws.var('mass_dimuon_BB').frame(ROOT.RooFit.Title('bla'))
 
 	c1 = ROOT.TCanvas("c1","c1",800,600)	
 

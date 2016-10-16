@@ -156,6 +156,7 @@ def main():
 
 	parser = argparse.ArgumentParser(description='Data writer for Zprime -> ll analysis interpretation in combine')
 	parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
+	parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
 	parser.add_argument("-o", "--options", dest = "options", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
@@ -175,8 +176,18 @@ def main():
 	moduleName = "createWS_%s"%args.chan
 	module =  __import__(moduleName)
 
-	if not os.path.exists(config.cardDir):
-    		os.makedirs(config.cardDir)
+	
+	if args.inject:
+		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.options,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		if not os.path.isfile(injectedFile):
+			name = "input/%s"%(args.options)
+			module.createSignalDataset(config.signalInjection["mass"],name,config.signalInjection["width"],config.signalInjection["nEvents"])
+	else:
+		cardDir = config.cardDir
+
+	if not os.path.exists(cardDir):
+    		os.makedirs(cardDir)
 	if args.mass > 0:
 		masses = [[5,args.mass,args.mass]]
 	else:
@@ -191,8 +202,11 @@ def main():
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
-			name = "%s/%s_%d" % (config.cardDir,args.chan, mass)
-			bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
+			name = "%s/%s_%d" % (cardDir,args.chan, mass)
+			if args.inject:	
+				bkgYields = [module.createWS(mass,100, name,config.width,config.correlate,dataFile=injectedFile)]
+			else:	
+				bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
 			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 

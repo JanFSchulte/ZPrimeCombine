@@ -52,7 +52,7 @@ def getResolution(mass):
 	
 	return 1.9E-02 + 2.4E-05*mass -2.4E-09*mass*mass
 
-def createWS(massVal,minNrEv,name,width,correlateMass):
+def createSignalDataset(massVal,name,width,nEvents):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
@@ -63,6 +63,89 @@ def createWS(massVal,minNrEv,name,width,correlateMass):
 		ROOT.gSystem.Load(f)
 
 	dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
+	
+	ws = RooWorkspace("dimuon_BB")
+        mass = RooRealVar('mass','mass',massVal, 200, 5000 )
+        getattr(ws,'import')(mass,ROOT.RooCmdArg())
+
+
+	peak = RooRealVar("peak","peak",massVal, 200,500)
+	peak.setConstant()
+	getattr(ws,'import')(peak,ROOT.RooCmdArg())
+	### configure instrinsic width
+
+	width_p0 = RooRealVar('width_p0','width_p0',0.0)
+	width_p1 = RooRealVar('width_p1','width_p1',0.006)
+	width_p0.setConstant()
+	width_p1.setConstant()
+	getattr(ws,'import')(width_p0,ROOT.RooCmdArg())
+	getattr(ws,'import')(width_p1,ROOT.RooCmdArg())
+
+	ws.factory("sum::width(width_p0, prod(width_p1,peak))")
+
+	### define signal shape
+
+	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
+	ws.factory("Voigtian::sig_pdf(mass, peak, width, %.3f)"%(massVal*getResolution(massVal)))
+
+
+	bkg_a = RooRealVar('bkg_a','bkg_a',28.51)
+	bkg_b = RooRealVar('bkg_b','bkg_b',-3.614E-4)
+	bkg_c = RooRealVar('bkg_c','bkg_c',-1.470E-7)
+	bkg_d = RooRealVar('bkg_d','bkg_d',6.885E-12)
+	bkg_e = RooRealVar('bkg_e','bkg_e',-4.196)
+	bkg_a.setConstant()
+	bkg_b.setConstant()
+	bkg_c.setConstant()
+	bkg_d.setConstant()
+	bkg_e.setConstant()
+	getattr(ws,'import')(bkg_a,ROOT.RooCmdArg())
+	getattr(ws,'import')(bkg_b,ROOT.RooCmdArg())
+	getattr(ws,'import')(bkg_c,ROOT.RooCmdArg())
+	getattr(ws,'import')(bkg_d,ROOT.RooCmdArg())
+	getattr(ws,'import')(bkg_e,ROOT.RooCmdArg())
+	
+	# background systematics
+	bkg_syst_a = RooRealVar('bkg_syst_a','bkg_syst_a',1.0)
+	bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',0.000)
+	bkg_syst_a.setConstant()
+	bkg_syst_b.setConstant()
+	getattr(ws,'import')(bkg_syst_a,ROOT.RooCmdArg())
+	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
+	
+	# background shape
+	ws.factory("ZPrimeMuonBkgPdf::bkgpdf(mass, bkg_a, bkg_b, bkg_c,bkg_d,bkg_e,bkg_syst_a,bkg_syst_b)")		
+
+
+        with open(dataFile) as f:
+                masses = f.readlines()
+        nBkg = len(masses)
+
+	dataSet = ws.pdf("bkgpdf").generate(ROOT.RooArgSet(ws.var("mass")),nBkg)
+	nSignal = int(round(nEvents*signalEff(massVal)))
+	dataSet.append(ws.pdf("sig_pdf").generate(ROOT.RooArgSet(ws.var("mass")),nSignal))
+	dataSet.SetName("dimuon_BB")
+
+	masses = []
+	for i in range(0,dataSet.numEntries()):
+		masses.append(dataSet.get(i).getRealValue("mass"))
+ 
+	f = open("%s_%d_%.3f_%d.txt"%(name,massVal,width,nEvents), 'w')
+	for mass in masses:
+		f.write("%.4f\n" % mass)
+	f.close()
+	
+def createWS(massVal,minNrEv,name,width,correlateMass,dataFile=""):
+
+	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
+#	ROOT.gSystem.AddIncludePath("-Ishapes"
+	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+
+	import glob
+	for f in glob.glob("userfuncs/*.cxx"):
+		ROOT.gSystem.Load(f)
+	if dataFile == "":
+		dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
 	if not correlateMass:
 		peakName = "_dimuon_BB"

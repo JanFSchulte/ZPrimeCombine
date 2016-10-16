@@ -1,7 +1,6 @@
 
 
 def getMassRange(massVal,minNrEv,effWidth,dataFile):
-
 	with open(dataFile) as f:
 		masses = f.readlines()
 	massDiffs = []

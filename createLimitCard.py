@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
         for massRange in config.masses:
                 mass = massRange[1]
-                while mass <= massRange[2]:
+                while mass < massRange[2]:
 			if  args.exp:
                         	fileName = inputDir + "/higgsCombine%s.MarkovChainMC.mH%d.123456.root"%(name,mass)
 			elif args.signif:	

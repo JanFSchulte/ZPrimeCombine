@@ -198,9 +198,9 @@ def main():
 	
 	if args.inject:
 		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
-		injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.options,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 		if not os.path.isfile(injectedFile):
-			name = "input/%s"%(args.options)
+			name = "input/%s"%(args.chan)
 			module.createSignalDataset(config.signalInjection["mass"],name,config.signalInjection["width"],config.signalInjection["nEvents"])
 	else:
 		cardDir = config.cardDir

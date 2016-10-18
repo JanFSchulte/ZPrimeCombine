@@ -24,7 +24,7 @@ def getRange(mass):
 	else:
 		return 40
 
-def runLocalLimits(args,config,outDir,cardDir):
+def runLocalLimits(args,config,outDir,cardDir,binned):
 	if args.mass > 0:
       		masses = [[5,args.mass,args.mass]]
         else:
@@ -38,6 +38,8 @@ def runLocalLimits(args,config,outDir,cardDir):
 			else:
 				cardName = cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
 		
+			if binned:
+				cardName = cardName.split(".")[0] + "_binned.txt"
 			numToys = config.numToys
 			if args.expected:
 				numToys = 1
@@ -60,7 +62,7 @@ def runLocalLimits(args,config,outDir,cardDir):
 			subprocess.call(["mv","%s"%resultFile,"%s"%outDir])
 			mass += massRange[0]
 
-def runLocalSignificance(args,config,outDir,cardDir):
+def runLocalSignificance(args,config,outDir,cardDir,binned):
 	if args.mass > 0:
       		masses = [[5,args.mass,args.mass]]
         else:
@@ -73,7 +75,8 @@ def runLocalSignificance(args,config,outDir,cardDir):
                                 cardName = cardDir + "/" + config.channels[0] + "_%d"%mass + ".txt"
                         else:
                                 cardName = cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
-                       
+                        if binned:
+				cardName = cardName.split(".")[0]+"_binned.txt"
                         subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif" , "--pvalue"]
 			for library in config.libraries:
                                 subCommand.append("--LoadLibrary")
@@ -89,7 +92,7 @@ def runLocalSignificance(args,config,outDir,cardDir):
                         mass += massRange[0]
 
 
-def submitLimits(args,config,outDir):
+def submitLimits(args,config,outDir,binned):
 
 	print "Job submission requested"
 	if config.submitTo in supportedResources:
@@ -136,7 +139,8 @@ def submitLimits(args,config,outDir):
                                 cardName = config.channels[0] + "_%d"%mass + ".txt"
                         else:
                                 cardName = args.config + "_combined" + "_%d"%mass + ".txt"
-                       
+                        if binned:
+				cardName = cardName.split(".")[0] + "_binned.txt"
 			if config.submitTo == "Purdue":
 				if args.expected:
 					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),Libs)
@@ -185,6 +189,7 @@ def main():
         parser = argparse.ArgumentParser(description='Steering tool for Zprime -> ll analysis interpretation in combine')
         parser.add_argument("-r", "--redo", action="store_true", default=False, help="recreate datacards and workspaces for this configuration")
         parser.add_argument("-w", "--write", action="store_true", default=False, help="create datacards and workspaces for this configuration")
+        parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
         parser.add_argument("-s", "--submit", action="store_true", default=False, help="submit jobs to cluster/GRID")
         parser.add_argument("--signif", action="store_true", default=False, help="run significance instead of limits")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
@@ -211,16 +216,16 @@ def main():
 
 		for channel in config.channels:
 			print "writing datacards and workspaces for channel %s ...."%channel
+			call = ["python","writeDataCards.py","-c","%s"%channel,"-o","%s"%args.config]
+			if args.mass > 0:
+				call.append("-m")
+				call.append("%d"%args.mass)
 			if args.inject:
-				if args.mass > 0:	
-					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass,"-i"])
-				else:	
-					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-i"])
-			else:
-				if args.mass > 0:	
-					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config,"-m","%d"%args.mass])
-				else:	
-					subprocess.call(["python", "writeDataCards.py", "-c","%s"%channel,"-o","%s"%args.config])
+				call.append("-i")
+			if args.binned:
+				call.append("-b")
+			subprocess.call(call)
+
 		print "done!"
 		if len(config.channels) > 1:
 			print "writing combined channel datacards ...."
@@ -233,9 +238,14 @@ def main():
                 		while mass <= massRange[2]:
 					command = ["combineCards.py"]	
 					for channel in config.channels:
-						command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
+						if args.binned:
+							command.append( "%s=%s_%d_binned.txt"%(channel,channel,mass))			
+						else:	
+							command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
 					
 					outName = "%s/%s_combined_%d.txt"%(cardDir,args.config,mass)
+					if args.binned:
+						outName = outName.split(".")[0]+"_binned.txt"
 					with open('%s'%outName, "w") as outfile:
 						subprocess.call(command, stdout=outfile,cwd=cardDir)
 					mass += massRange[0]			
@@ -247,6 +257,10 @@ def main():
 		outDir = "results_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 	else:
 		outDir = "results_%s"%args.config
+	
+	if args.binned:
+		outDir = outDir + "_binned"
+	
         if not os.path.exists(outDir):
                 os.makedirs(outDir)
 	
@@ -255,11 +269,11 @@ def main():
 			print "Significance calculation supported only for local running"
 			sys.exit()
 		else:
-			submitLimits(args,config,outDir)
+			submitLimits(args,config,outDir,args.binned)
 	else:
 		print "no submisson requested - running locally"
 		if args.signif:
-			runLocalSignificance(args,config,outDir,cardDir)
+			runLocalSignificance(args,config,outDir,cardDir,args.binned)
 		else:
-			runLocalLimits(args,config,outDir,cardDir)	
+			runLocalLimits(args,config,outDir,cardDir,args.binned)	
 main()

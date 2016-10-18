@@ -2,18 +2,20 @@ import ROOT
 
 def main():
 
-
+	import glob
+	for f in glob.glob("userfuncs/*.so"):
+		ROOT.gSystem.Load(f)
+	
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-	f = ROOT.TFile("dataCards_ICHEPBB_2000_0.0060_20/dimuon_BB_2000.root")
+	f = ROOT.TFile("dataCards_ICHEPBB/dimuon_BB_2000_binned.root")
 
-	ws = f.Get("dimuon_BB")
-
+	ws = f.Get("w")
+	ws.Print()
 	frame = ws.var('mass_dimuon_BB').frame(ROOT.RooFit.Title('bla'))
 
 	c1 = ROOT.TCanvas("c1","c1",800,600)	
 
-	ROOT.RooAbsData.plotOn(ws.data("data_dimuon_BB"), frame)
 
 	ws.pdf('bkgpdf_dimuon_BB').plotOn(frame,
 								  #~ ROOT.RooFit.VisualizeError(fitOFOS, 1),

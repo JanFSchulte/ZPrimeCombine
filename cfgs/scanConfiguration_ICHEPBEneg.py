@@ -13,5 +13,8 @@ numInt = 500000
 numToys = 10
 exptToys = 100
 width = 0.006
+
+binWidth = 1
+
 submitTo = "Purdue"
 		

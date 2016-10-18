@@ -74,6 +74,11 @@ echo ------------------------------------------------------
 #
 export SRCDIR=$SRC/dataCards_$Name
 export OUTDIR=$SRC/results_$Name
+if [[ $DATACARD == *"binned"* ]]
+then
+  export OUTDIR=$SRC/results_${Name}_binned;
+fi
+
 export ID=`echo ${PBS_JOBID} | awk -F "." '{print $1}'`
 export WORKDIR=/tmp/${ID}
 
@@ -102,7 +107,7 @@ cd ${SRCDIR}
 mkdir ${WORKDIR}
 cd ${WORKDIR}
 mkdir dataCards_${Name}
-for file in ${SRCDIR}/*$MASS.root; do cp "$file" dataCards_${Name} ;done
+for file in ${SRCDIR}/*$MASS*.root; do cp "$file" dataCards_${Name} ;done
 cp ${SRCDIR}/${DATACARD} .
 ls
 #

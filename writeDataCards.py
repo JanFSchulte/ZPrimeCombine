@@ -83,7 +83,7 @@ def getChannelBlock(nBkgs,bkgYields,signalScale,chan):
  
 
 
-def getUncert(uncert, value, nBkgs, mass,channel,correlate):
+def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
 
 	if uncert == "sigEff":
 		if correlate:
@@ -111,11 +111,22 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate):
 			result += "  1.4  "
 
 	if uncert == "massScale":
-		if correlate:
-			name = "peak"
+		if binned:
+			if correlate:
+				name = "scale"
+			else:
+				name = "scale_%s"%channel
+			result = "%s shape 1"%name
+	                for i in range(0,nBkgs):
+        	                result += "  -  "
+			
+	
 		else:
-			name = "peak_%s"%channel
-		result = "%s param %d %.2f" % (name, mass, mass*value )
+			if correlate:
+				name = "peak"
+			else:
+				name = "peak_%s"%channel
+			result = "%s param %d %.2f" % (name, mass, mass*value )
 	result += "\n"		
         return result
 		
@@ -132,21 +143,29 @@ def writeCard(card,fileName):
 def getDataset(binned,fileName, chan):
 
 	if binned:
-		return "bla"
+		return "shapes data_obs %s %s data_%s" % (chan, fileName, chan )
 	else:
 		return "shapes data_obs %s %s %s:data_%s" % (chan, fileName, chan, chan)	
 
-def getSignalShape(binned,fileName,chan):
+def getSignalShape(binned,fileName,chan,scale):
 	
 	if binned:
-		return "bla"
+		result =  "shapes sig %s %s sigHist_%s" % (chan, fileName, chan)
+		if scale:
+			#result += " sigHist_%s_scaleUp"%chan
+			#result += " sigHist_%s_scaleDown"%chan
+			result += " sigHist_%s_$SYSTEMATIC"%chan  
+		return result
 	else:
 		return  "shapes sig %s %s %s:sig_pdf_%s" % (chan, fileName, chan, chan)
 
 def getBackgroundShapes(binned,fileName,chan,nBkg=0):
 
 	if binned:
-		return "bla"
+		if nBkg == 0:
+			return "shapes bkg %s %s bkgHist_%s" % (chan, fileName, chan)
+		else:
+			return "shapes bkg %s %s bkgHist_%s_%d" % (chan, fileName, chan, nBkg)
 	else:
 		if nBkg == 0:
 			return "shapes bkg %s %s %s:bkgpdf_%s" % (chan, fileName, chan, chan)
@@ -202,11 +221,20 @@ def main():
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
-			name = "%s/%s_%d" % (cardDir,args.chan, mass)
-			if args.inject:	
-				bkgYields = [module.createWS(mass,100, name,config.width,config.correlate,dataFile=injectedFile)]
-			else:	
-				bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
+			if args.binned:
+				name = "%s/%s_%d_binned" % (cardDir,args.chan, mass)
+				if args.inject:	
+					bkgYields = [module.createHistograms(mass,100, name,config.width,config.correlate,config.binWidth,dataFile=injectedFile)]
+				else:	
+					bkgYields = [module.createHistograms(mass,100, name,config.width,config.correlate,config.binWidth)]
+			else:
+				name = "%s/%s_%d" % (cardDir,args.chan, mass)
+				if args.inject:	
+					bkgYields = [module.createWS(mass,100, name,config.width,config.correlate,dataFile=injectedFile)]
+				else:	
+					bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
+				
+
 			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 
@@ -229,8 +257,12 @@ def main():
                 			channelDict["bkgShapes"] += getBackgroundShapes(args.binned,"%s.root"%nam,eargs.chan,i)
 					if i < nBkg:
 						channelDict["bkgShapes"] += "\n"
+			scale = False
+			if "massScale" in config.systematics:
+				scale = True
+
 	
-			channelDict["sigShape"] = getSignalShape(args.binned,"%s.root"%name,args.chan)
+			channelDict["sigShape"] = getSignalShape(args.binned,"%s.root"%name,args.chan,scale)
 			channelDict["data"] = getDataset(args.binned,"%s.root"%name,args.chan)
 			
 			channelDict["channels"]	= getChannelBlock(nBkg,bkgYields,signalScale,args.chan)		
@@ -238,7 +270,7 @@ def main():
 			uncertBlock = ""
 			uncerts = module.provideUncertainties(mass)
 			for uncert in config.systematics:
-				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass,args.chan,config.correlate)
+				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass,args.chan,config.correlate,args.binned)
 			
 			channelDict["systs"] = uncertBlock
 

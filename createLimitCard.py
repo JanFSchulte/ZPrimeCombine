@@ -12,6 +12,7 @@ if __name__ == "__main__":
     	parser.add_argument("--exp",dest="exp", action="store_true", default=False, help='write expected limits')
     	parser.add_argument("--signif",dest="signif", action="store_true", default=False, help='write pValues')
     	parser.add_argument("--injected",dest="injected", action="store_true", default=False, help='injected')
+    	parser.add_argument("--binned",dest="binned", action="store_true", default=False, help='binned')
         args = parser.parse_args()
 
 
@@ -29,13 +30,17 @@ if __name__ == "__main__":
 
         print "Taking inputs from %s"%inputDir
 
+	
 	if args.exp:
-		outFile = open("limitCard_%s_Exp.txt"%(args.config), "w")
+		outFileName = "limitCard_%s_Exp"%(args.config)
 	elif args.signif:
-		outFile = open("limitCard_%s_Signif.txt"%(args.config), "w")
+		outFileName = "limitCard_%s_Signif"%(args.config)
 	else:
-		outFile = open("limitCard_%s_Obs.txt"%(args.config), "w")
+		outFileName = "limitCard_%s_Obs"%(args.config)
 		
+	if args.binned:
+		outFileName += "_binned"
+	outFile = open("%s.txt"%outFileName, "w")	
 	if args.injected:
 		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 	else:

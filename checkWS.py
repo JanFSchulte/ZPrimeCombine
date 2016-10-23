@@ -8,14 +8,15 @@ def main():
 	
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-	f = ROOT.TFile("dataCards_ICHEPBB/dimuon_BB_2000_binned.root")
+	f = ROOT.TFile("dataCards_ICHEPDimuon_2000_0.0060_10/dimuon_BB_2000.root")
 
-	ws = f.Get("w")
+	ws = f.Get("dimuon_BB")
 	ws.Print()
-	frame = ws.var('mass_dimuon_BB').frame(ROOT.RooFit.Title('bla'))
+	frame = ws.var('mass_dimuon_BB').frame(ROOT.RooFit.Title(''))
 
 	c1 = ROOT.TCanvas("c1","c1",800,600)	
 
+	ws.data("data_dimuon_BB").plotOn(frame)
 
 	ws.pdf('bkgpdf_dimuon_BB').plotOn(frame,
 								  #~ ROOT.RooFit.VisualizeError(fitOFOS, 1),

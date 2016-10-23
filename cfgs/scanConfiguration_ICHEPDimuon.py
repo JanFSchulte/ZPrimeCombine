@@ -16,7 +16,7 @@ exptToys = 100
 width = 0.006
 submitTo = "Purdue"
 
-binWidth = 1
+binWidth = 10
 
 signalInjection = {"mass":2000,"width":0.006,"nEvents":10}
 		

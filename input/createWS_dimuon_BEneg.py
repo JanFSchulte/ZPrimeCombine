@@ -310,11 +310,13 @@ def createHistograms(massVal,minNrEv,name,width,correlateMass,binWidth,dataFile=
 	ws.factory("Voigtian::sig_pdf_dimuon_BEneg(mass_dimuon_BEneg, peak%s, width_dimuon_BEneg, %.3f)"%(peakName,massVal*getResolution(massVal)))
 
 
-	bkg_a = RooRealVar('bkg_a_dimuon_BEneg','bkg_a_dimuon_BEneg',28.51)
-	bkg_b = RooRealVar('bkg_b_dimuon_BEneg','bkg_b_dimuon_BEneg',-3.614E-4)
-	bkg_c = RooRealVar('bkg_c_dimuon_BEneg','bkg_c_dimuon_BEneg',-1.470E-7)
-	bkg_d = RooRealVar('bkg_d_dimuon_BEneg','bkg_d_dimuon_BEneg',6.885E-12)
-	bkg_e = RooRealVar('bkg_e_dimuon_BEneg','bkg_e_dimuon_BEneg',-4.196)
+	bkg_a = RooRealVar('bkg_a_dimuon_BEneg','bkg_a_dimuon_BEneg',21.24)
+        bkg_b = RooRealVar('bkg_b_dimuon_BEneg','bkg_b_dimuon_BEneg',-3.521E-3)
+        bkg_c = RooRealVar('bkg_c_dimuon_BEneg','bkg_c_dimuon_BEneg',5.025E-7)
+        bkg_d = RooRealVar('bkg_d_dimuon_BEneg','bkg_d_dimuon_BEneg',-4.365E-11)
+        bkg_e = RooRealVar('bkg_e_dimuon_BEneg','bkg_e_dimuon_BEneg',-2.768)
+
+
 	bkg_a.setConstant()
 	bkg_b.setConstant()
 	bkg_c.setConstant()
@@ -357,24 +359,34 @@ def createHistograms(massVal,minNrEv,name,width,correlateMass,binWidth,dataFile=
         if not correlateMass:
                 scaleName +="_dimuon_BEneg"
 
-        sigShape = ws.pdf("sig_pdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),100000)
-        sigHist = ROOT.TH1F("sigHist_dimuon_BEneg","sigHist_dimuon_BEneg",nBins,massLow,massHigh)
-        sigHistUp = ROOT.TH1F("sigHist_dimuon_BEneg_%sUp"%scaleName,"sigHist_dimuon_BEneg_%sUp"%scaleName,nBins,massLow,massHigh)
-        sigHistDown = ROOT.TH1F("sigHist_dimuon_BEneg_%sDown"%scaleName,"sigHist_dimuon_BEneg_%sDown"%scaleName,nBins,massLow,massHigh)
+        sigShape = ws.pdf("sig_pdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),1000000)
+	ws.var("peak%s"%peakName).setVal(massVal*1.01)
+        sigShapeUp = ws.pdf("sig_pdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),1000000)
+	ws.var("peak%s"%peakName).setVal(massVal*0.99)
+        sigShapeDown = ws.pdf("sig_pdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),1000000)
 
-        for i in range(0,sigShape.numEntries()):
-                sigHist.Fill(sigShape.get(i).getRealValue("mass_dimuon_BEneg"))
-                sigHistUp.Fill(sigShape.get(i).getRealValue("mass_dimuon_BEneg")*1.01)
-                sigHistDown.Fill(sigShape.get(i).getRealValue("mass_dimuon_BEneg")*0.99)
-	sigHist.Scale(1./(sigHist.GetEntries())*provideSignalScaling(massVal)*1e-7)
-	sigHistUp.Scale(1./(sigHistUp.GetEntries())*provideSignalScaling(massVal)*1e-7)
-	sigHistDown.Scale(1./(sigHistDown.GetEntries())*provideSignalScaling(massVal)*1e-7)
+	sigHistRooFit = ROOT.RooDataHist("sigHist_dimuon_BEneg", "sigHist_dimuon_BEneg", ROOT.RooArgSet(ws.var('mass_dimuon_BEneg')), sigShape)	
+	sigHist = sigHistRooFit.createHistogram("sigHist_dimuon_BEneg",ws.var("mass_dimuon_BEneg"))
+	sigHist.SetName("sigHist_dimuon_BEneg")
 
-	bkgShape = ws.pdf("bkgpdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),100000)
-	bkgHist = ROOT.TH1F("bkgHist_dimuon_BEneg","bkgHist_dimuon_BEneg",nBins,massLow,massHigh)
-        for i in range(0,bkgShape.numEntries()):
-                bkgHist.Fill(bkgShape.get(i).getRealValue("mass_dimuon_BEneg"))
-	bkgHist.Scale(1./(bkgHist.GetEntries())*nBackground)
+	sigHistRooFitUp = ROOT.RooDataHist("sigHist_dimuon_BEneg_%sUp"%scaleName, "sigHist_dimuon_BEneg_%sUp"%scaleName, ROOT.RooArgSet(ws.var('mass_dimuon_BEneg')), sigShapeUp)	
+	sigHistUp = sigHistRooFitUp.createHistogram("sigHist_dimuon_BEneg_%sUp"%scaleName,ws.var("mass_dimuon_BEneg"))
+	sigHistUp.SetName("sigHist_dimuon_BEneg_%sUp"%scaleName)
+
+	sigHistRooFitDown = ROOT.RooDataHist("sigHist_dimuon_BEneg_%sDown"%scaleName, "sigHist_dimuon_BEneg_%sDown"%scaleName, ROOT.RooArgSet(ws.var('mass_dimuon_BEneg')), sigShapeDown)	
+	sigHistDown = sigHistRooFitDown.createHistogram("sigHist_dimuon_BEneg_%sDown"%scaleName,ws.var("mass_dimuon_BEneg"))
+	sigHistDown.SetName("sigHist_dimuon_BEneg_%sDown"%scaleName)
+	
+	sigHist.Scale(1./(sigHist.Integral())*provideSignalScaling(massVal)*1e-7)
+	sigHistUp.Scale(1./(sigHistUp.Integral())*provideSignalScaling(massVal)*1e-7)
+	sigHistDown.Scale(1./(sigHistDown.Integral())*provideSignalScaling(massVal)*1e-7)
+
+	bkgShape = ws.pdf("bkgpdf_dimuon_BEneg").generate(ROOT.RooArgSet(ws.var("mass_dimuon_BEneg")),1000000)
+	bkgHistRooFit = ROOT.RooDataHist("bkgHist_dimuon_BEneg", "bkgHist_dimuon_BEneg", ROOT.RooArgSet(ws.var('mass_dimuon_BEneg')), bkgShape)	
+	bkgHist = bkgHistRooFit.createHistogram("bkgHist_dimuon_BEneg",ws.var("mass_dimuon_BEneg"))
+	bkgHist.SetName("bkgHist_dimuon_BEneg")
+
+	bkgHist.Scale(1./(bkgHist.Integral())*nBackground)
 
 	dataHist = ROOT.TH1F("data_dimuon_BEneg","data_dimuon_BEneg",nBins,massLow,massHigh)
 	

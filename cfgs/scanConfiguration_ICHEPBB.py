@@ -14,8 +14,8 @@ numToys = 1
 exptToys = 100
 width = 0.006
 submitTo = "Purdue"
-
+CB = True
 binWidth = 1
 
 
-signalInjection = {"mass":2000,"width":0.006,"nEvents":20}		
+signalInjection = {"mass":2000,"width":0.006,"nEvents":20.,"CB":True}		

@@ -8,7 +8,7 @@ def main():
 	
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
-	f = ROOT.TFile("dataCards_ICHEPDimuon_2000_0.0060_10/dimuon_BB_2000.root")
+	f = ROOT.TFile("dataCards_ICHEPBB/dimuon_BB_1000.root")
 
 	ws = f.Get("dimuon_BB")
 	ws.Print()

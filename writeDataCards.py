@@ -192,16 +192,20 @@ def main():
 	configName = "scanConfiguration_%s"%args.options
 	config =  __import__(configName)
 
-	moduleName = "createWS_%s"%args.chan
+	moduleName = "channelConfig_%s"%args.chan
 	module =  __import__(moduleName)
 
+	from createInputs import createWS, createHistograms, createSignalDataset
 	
 	if args.inject:
 		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
-		injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		if config.signalInjection["CB"]:
+			injectedFile = "input/%s_%d_%.3f_%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		else:	
+			injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 		if not os.path.isfile(injectedFile):
 			name = "input/%s"%(args.chan)
-			module.createSignalDataset(config.signalInjection["mass"],name,config.signalInjection["width"],config.signalInjection["nEvents"])
+			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["CB"])
 	else:
 		cardDir = config.cardDir
 
@@ -224,15 +228,15 @@ def main():
 			if args.binned:
 				name = "%s/%s_%d_binned" % (cardDir,args.chan, mass)
 				if args.inject:	
-					bkgYields = [module.createHistograms(mass,100, name,config.width,config.correlate,config.binWidth,dataFile=injectedFile)]
+					bkgYields = [createHistograms(mass,100, name,args.chan,config.width,config.correlate,config.binWidth,dataFile=injectedFile,CB=config.CB)]
 				else:	
-					bkgYields = [module.createHistograms(mass,100, name,config.width,config.correlate,config.binWidth)]
+					bkgYields = [createHistograms(mass,100, name,args.chan,config.width,config.correlate,config.binWidth,CB=config.CB)]
 			else:
 				name = "%s/%s_%d" % (cardDir,args.chan, mass)
 				if args.inject:	
-					bkgYields = [module.createWS(mass,100, name,config.width,config.correlate,dataFile=injectedFile)]
+					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB)]
 				else:	
-					bkgYields = [module.createWS(mass,100, name,config.width,config.correlate)]
+					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]
 				
 
 			signalScale = module.provideSignalScaling(mass)*1e-7

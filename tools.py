@@ -17,7 +17,7 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 		massLow = massVal - 6*effWidth*massVal
 	if (massVal+6*effWidth*massVal) > massHigh:
 		massHigh = massVal + 6*effWidth*massVal
-
+	massLow= max(massLow,200)
 	return massLow, massHigh
 
 

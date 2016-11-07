@@ -4,7 +4,7 @@ systematics = ["sigEff","bkgUncert","massScale"]
 correlate = False
 #systematics = ["massScale"]
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
-cardDir = "dataCards_ICHEPDimuon"
+cardDir = "dataCards_ICHEPDimuonCB"
 
 libraries = ["ZPrimeMuonBkgPdf_cxx.so","Pol2_cxx.so"]
 
@@ -17,6 +17,6 @@ width = 0.006
 submitTo = "Purdue"
 
 binWidth = 10
-CB = False
+CB = True
 signalInjection = {"mass":2000,"width":0.006,"nEvents":10,"CB":True}
 		

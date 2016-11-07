@@ -19,13 +19,12 @@ def createSignalDataset(massVal,name,channel,width,nEvents,CB):
         config =  __import__(configName)
 	
 	dataFile = config.dataFile
-	
 	ws = RooWorkspace("tempWS")
         mass = RooRealVar('massFullRange','massFullRange',massVal, 200, 5000 )
         getattr(ws,'import')(mass,ROOT.RooCmdArg())
 
 
-	peak = RooRealVar("peak","peak",massVal, 200,500)
+	peak = RooRealVar("peak","peak",massVal, 200,5000)
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 
@@ -60,7 +59,7 @@ def createSignalDataset(massVal,name,channel,width,nEvents,CB):
 
 	masses = []
 	for i in range(0,dataSet.numEntries()):
-		masses.append(dataSet.get(i).getRealValue("mass"))
+		masses.append(dataSet.get(i).getRealValue("massFullRange"))
  	if CB:
 		f = open("%s_%d_%.3f_%d_CB.txt"%(name,massVal,width,nEvents), 'w')
 	else:	
@@ -76,7 +75,6 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	for f in glob.glob("userfuncs/*.cxx"):
 		ROOT.gSystem.Load(f)
 
-
         configName ="channelConfig_%s"%channel
         config =  __import__(configName)
 	
@@ -89,7 +87,6 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 		peakName = ""
 
 	effWidth = width + config.getResolution(massVal)
-	
 	from tools import getMassRange
 	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
 	ws = RooWorkspace(channel)
@@ -109,7 +106,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 
 	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
 	if CB:
-
+		
 		ws.factory("BreitWigner::bw(mass_%s, peak%s, %.3f)"%(channel,peakName,massVal*config.getResolution(massVal)))
 		ws.factory("RooCBShape::cb(mass_%s, mean[0.0], %.3f, alpha[1.43], n[3])"%(channel,massVal*config.getResolution(massVal)))
 		
@@ -124,8 +121,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 		getattr(ws,'import')(sigpdf,ROOT.RooCmdArg())
 
 	else:
-		ws.factory("Voigtian::sig_pdf_%s(mass_%s, %s,  %.3f, %.3f)"%(channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
-
+		ws.factory("Voigtian::sig_pdf_%s(mass_%s, peak%s,  %.3f, %.3f)"%(channel,channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
 	ws = config.loadBackgroundShape(ws)
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))
@@ -138,7 +134,6 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 
 	if write:
 		ws.writeToFile("%s.root"%name,True)
-
         	from tools import getBkgEstInWindow
         	return getBkgEstInWindow(ws,massLow,massHigh,dataFile)
 	else:
@@ -147,7 +142,6 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,dataFile="",CB=True):
 	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
 
-	print massVal
 	configName ="channelConfig_%s"%channel
         config =  __import__(configName)
 	
@@ -170,7 +164,6 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
 	
 	nBins = int((massHigh - massLow)/binWidth) 
 	ws.var("mass_%s"%channel).setBins(nBins)
-	print name
 	histFile = ROOT.TFile("%s.root"%name, "RECREATE")	
 
         scaleName = "scale"
@@ -178,7 +171,6 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
                 scaleName +="_%s"%channel
 
 	scaleUncert = config.provideUncertainties(massVal)["massScale"]
-	print ws.var("peak%s"%peakName).getVal()
         sigShape = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)
 	ws.var("peak%s"%peakName).setVal(massVal*(1+scaleUncert))
         sigShapeUp = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)

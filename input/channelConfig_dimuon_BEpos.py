@@ -48,7 +48,7 @@ def provideUncertainties(mass):
 def getResolution(mass):
 	return 2.7E-02 + 3.3E-05*mass  - 1.9E-09*mass*mass
 
-dataFile = "dimuon_13TeV_2016_ICHEPDataset_BEpos.txt"
+dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BEpos.txt"
 
 
 def loadBackgroundShape(ws):

@@ -70,7 +70,6 @@ def createSignalDataset(massVal,name,channel,width,nEvents,CB):
 
 def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=True,write=True):
 	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
-
 	import glob
 	for f in glob.glob("userfuncs/*.cxx"):
 		ROOT.gSystem.Load(f)
@@ -107,7 +106,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
 	if CB:
 		
-		ws.factory("BreitWigner::bw(mass_%s, peak%s, %.3f)"%(channel,peakName,massVal*config.getResolution(massVal)))
+		ws.factory("BreitWigner::bw(mass_%s, peak%s, %.3f)"%(channel,peakName,massVal*width))
 		ws.factory("RooCBShape::cb(mass_%s, mean[0.0], %.3f, alpha[1.43], n[3])"%(channel,massVal*config.getResolution(massVal)))
 		
 		bw = ws.pdf("bw")
@@ -139,8 +138,25 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	else:
 		return ws
 
+
+def getBinning(mass):
+
+
+	if mass < 700:
+		return [1,100000]
+	if mass < 1000:
+		return [1,500000]
+	elif mass < 2000:
+		return [10,1000000]
+	else:
+		return [20,500000]
+
+
 def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,dataFile="",CB=True):
 	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+
+
+	
 
 	configName ="channelConfig_%s"%channel
         config =  __import__(configName)
@@ -161,7 +177,8 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
         
 	from tools import getBkgEstInWindow
 	nBackground = getBkgEstInWindow(ws,massLow,massHigh,dataFile)
-	
+	binWidth = getBinning(massVal)[0]
+	numEvents = getBinning(massVal)[1]
 	nBins = int((massHigh - massLow)/binWidth) 
 	ws.var("mass_%s"%channel).setBins(nBins)
 	histFile = ROOT.TFile("%s.root"%name, "RECREATE")	
@@ -171,11 +188,11 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
                 scaleName +="_%s"%channel
 
 	scaleUncert = config.provideUncertainties(massVal)["massScale"]
-        sigShape = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)
+        sigShape = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),numEvents)
 	ws.var("peak%s"%peakName).setVal(massVal*(1+scaleUncert))
-        sigShapeUp = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)
+        sigShapeUp = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),numEvents)
 	ws.var("peak%s"%peakName).setVal(massVal*(1-scaleUncert))
-        sigShapeDown = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)
+        sigShapeDown = ws.pdf("sig_pdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),numEvents)
 
 	sigHistRooFit = ROOT.RooDataHist("sigHist_%s"%channel, "sigHist_%s"%channel, ROOT.RooArgSet(ws.var('mass_%s'%channel)), sigShape)	
 	sigHist = sigHistRooFit.createHistogram("sigHist_%s"%channel,ws.var("mass_%s"%channel))
@@ -193,7 +210,7 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
 	sigHistUp.Scale(1./(sigHistUp.Integral())*config.provideSignalScaling(massVal)*1e-7)
 	sigHistDown.Scale(1./(sigHistDown.Integral())*config.provideSignalScaling(massVal)*1e-7)
 
-	bkgShape = ws.pdf("bkgpdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),1000000)
+	bkgShape = ws.pdf("bkgpdf_%s"%channel).generate(ROOT.RooArgSet(ws.var("mass_%s"%channel)),numEvents)
 	bkgHistRooFit = ROOT.RooDataHist("bkgHist_%s"%channel, "bkgHist_%s"%channel, ROOT.RooArgSet(ws.var('mass_%s'%channel)), bkgShape)	
 	bkgHist = bkgHistRooFit.createHistogram("bkgHist_%s"%channel,ws.var("mass_%s"%channel))
 	bkgHist.SetName("bkgHist_%s"%channel)

@@ -50,7 +50,7 @@ def provideUncertainties(mass):
 def getResolution(mass):
 	return 2.6E-02 + 3.2E-05*mass - 1.6E-09*mass*mass
 
-dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BEpos.txt"
+dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BEneg.txt"
 
 def loadBackgroundShape(ws):
 	bkg_a = RooRealVar('bkg_a_dimuon_BEneg','bkg_a_dimuon_BEneg',21.24)

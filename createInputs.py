@@ -84,7 +84,6 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 		peakName = "_%s"%channel 
 	else:
 		peakName = ""
-
 	effWidth = width + config.getResolution(massVal)
 	from tools import getMassRange
 	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
@@ -101,14 +100,22 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 	
-	### define signal shape
+	### mass scale uncertainty defined on peak position
+	beta_peak = RooRealVar('beta_peak%s'%peakName,'beta_peak%s'%peakName,0,-5,5)
+	getattr(ws,'import')(beta_peak,ROOT.RooCmdArg())
+	scaleUncert = 1. + config.provideUncertainties(massVal)["massScale"]
+	peak_kappa = RooRealVar('peak%s_kappa'%peakName,'peak%s_kappa'%peakName,scaleUncert)
+	peak_kappa.setConstant()
+	getattr(ws,'import')(peak_kappa,ROOT.RooCmdArg())
+	ws.factory("PowFunc::peak_nuis%s(peak%s_kappa, beta_peak%s)"%(peakName,peakName,peakName))
+	ws.factory("prod::peak_scaled%s(peak%s, peak_nuis%s)"%(peakName,peakName,peakName))
 
-	#ws.factory("Voigtian::sig_pdf_dimuon_BB(mass, peak, width, sigma)")
+	ws.Print()
 	if CB:
 		
-		ws.factory("BreitWigner::bw(mass_%s, peak%s, %.3f)"%(channel,peakName,massVal*width))
+		ws.factory("BreitWigner::bw(mass_%s, peak_scaled%s, %.3f)"%(channel,peakName,massVal*width))
 		ws.factory("RooCBShape::cb(mass_%s, mean[0.0], %.3f, alpha[1.43], n[3])"%(channel,massVal*config.getResolution(massVal)))
-		
+		ws.Print()		
 		bw = ws.pdf("bw")
 		cb = ws.pdf("cb")
 		
@@ -120,7 +127,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 		getattr(ws,'import')(sigpdf,ROOT.RooCmdArg())
 
 	else:
-		ws.factory("Voigtian::sig_pdf_%s(mass_%s, peak%s,  %.3f, %.3f)"%(channel,channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
+		ws.factory("Voigtian::sig_pdf_%s(mass_%s, peak_scaled%s,  %.3f, %.3f)"%(channel,channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
 	ws = config.loadBackgroundShape(ws)
 
 	ds = RooDataSet.read(dataFile,RooArgList(mass))

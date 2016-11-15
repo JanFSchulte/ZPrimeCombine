@@ -93,7 +93,7 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
 	        if len(value) == 1:
 	                result = "%s  lnN  %.2f"%(name,value[0])
 	        else:
-	                result = "%s  lnN  %.2f/%.2f"%(name, value[0], value[1] )
+	                result = "%s  lnN  %.5f/%.2f"%(name, value[0], value[1] )
 
 		for i in range(0,nBkgs):
 	                result += "  -  "
@@ -123,10 +123,10 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
 	
 		else:
 			if correlate:
-				name = "peak"
+				name = "beta_peak"
 			else:
-				name = "peak_%s"%channel
-			result = "%s param %d %.2f" % (name, mass, mass*value )
+				name = "beta_peak_%s"%channel
+			result = "%s param 0 1" %name
 	result += "\n"		
         return result
 		

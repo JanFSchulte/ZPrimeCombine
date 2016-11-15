@@ -45,7 +45,7 @@ if __name__ == "__main__":
 		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 	else:
 		name=args.config
-	
+	print name	
 
         for massRange in config.masses:
                 mass = massRange[1]

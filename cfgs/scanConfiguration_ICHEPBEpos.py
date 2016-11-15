@@ -6,7 +6,7 @@ correlate = False
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
 cardDir = "dataCards_ICHEPBEpos"
 
-libraries = ["ZPrimeMuonBkgPdf_cxx.so","Pol2_cxx.so"]
+libraries = ["ZPrimeMuonBkgPdf_cxx.so","PowFunc_cxx.so"]
 
 channels = ["dimuon_BEpos"]
 numInt = 500000
@@ -15,6 +15,6 @@ exptToys = 100
 width = 0.006
 
 binWidth = 1
-
+CB=False
 submitTo = "Purdue"
 		

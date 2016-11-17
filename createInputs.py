@@ -110,12 +110,10 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	ws.factory("PowFunc::peak_nuis%s(peak%s_kappa, beta_peak%s)"%(peakName,peakName,peakName))
 	ws.factory("prod::peak_scaled%s(peak%s, peak_nuis%s)"%(peakName,peakName,peakName))
 
-	ws.Print()
 	if CB:
 		
 		ws.factory("BreitWigner::bw(mass_%s, peak_scaled%s, %.3f)"%(channel,peakName,massVal*width))
 		ws.factory("RooCBShape::cb(mass_%s, mean[0.0], %.3f, alpha[1.43], n[3])"%(channel,massVal*config.getResolution(massVal)))
-		ws.Print()		
 		bw = ws.pdf("bw")
 		cb = ws.pdf("cb")
 		
@@ -129,12 +127,10 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	else:
 		ws.factory("Voigtian::sig_pdf_%s(mass_%s, peak_scaled%s,  %.3f, %.3f)"%(channel,channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
 	ws = config.loadBackgroundShape(ws)
-
 	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_%s'%channel)
 	ds.SetTitle('data_%s'%channel)
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())
-
 	ws.addClassDeclImportDir("shapes/")	
 	ws.importClassCode()	
 

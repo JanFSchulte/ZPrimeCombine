@@ -179,9 +179,12 @@ def main():
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
 	parser.add_argument("-o", "--options", dest = "options", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
+	parser.add_argument("-t", "--tag", dest = "tag", default="", help="tag")
 				
 	args = parser.parse_args()	
-
+	tag = args.tag
+	if not args.tag == "":
+		tag = "_" + args.tag
 
         import glob
 	from ROOT import gROOT
@@ -198,7 +201,7 @@ def main():
 	from createInputs import createWS, createHistograms, createSignalDataset
 	
 	if args.inject:
-		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 		if config.signalInjection["CB"]:
 			injectedFile = "input/%s_%d_%.3f_%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 		else:	
@@ -208,7 +211,7 @@ def main():
 			name = "input/%s"%(args.chan)
 			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["CB"])
 	else:
-		cardDir = config.cardDir
+		cardDir = config.cardDir + tag
 
 	if not os.path.exists(cardDir):
     		os.makedirs(cardDir)
@@ -238,7 +241,6 @@ def main():
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB)]
 				else:	
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]
-				
 			signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = module.nBkg 
 

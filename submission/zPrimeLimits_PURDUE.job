@@ -10,6 +10,7 @@ NTOYS=$5
 NTOYSEXP=$6
 MASS=$7
 RANGE=$8
+TAG=$9
 echo ${SRC}
 echo $DATACARD
 echo $NINT
@@ -20,7 +21,7 @@ echo $MASS
 ARGS=("$@")
 LIBPART=""
 END=$#
-for ((i=8;i<END;i++)); do
+for ((i=9;i<END;i++)); do
     LIBPART+=" --LoadLibrary "
     echo ${ARGS[$i]}
     LIBPART+=${ARGS[$i]}
@@ -131,15 +132,15 @@ fi
 if [ ! -d "$OUTDIR" ]; then
 mkdir ${OUTDIR}
 fi
-if [ ! -d "$OUTDIR/$DATE" ]; then
-mkdir ${OUTDIR}/$DATE
+if [ ! -d "$OUTDIR/$TAG" ]; then
+mkdir ${OUTDIR}/$TAG
 fi
 echo "Finished -- ls dir: "
 pwd
 ls -lrt | tail
-echo "Copying to " ${OUTDIR}/$DATE
-cp ${WORKDIR}/*.root ${OUTDIR}/$DATE/
-echo "what is in " ${OUTDIR}/$DATE
+echo "Copying to " ${OUTDIR}/$TAG
+cp ${WORKDIR}/*.root ${OUTDIR}/$TAG/
+echo "what is in " ${OUTDIR}/$TAG
 ls -lrt ${OUTDIR} | tail
 
 #

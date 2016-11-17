@@ -74,6 +74,7 @@ def loadBackgroundShape(ws):
 	# background systematics
 	bkg_syst_a = RooRealVar('bkg_syst_a','bkg_syst_a',1.0)
 	bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',0.000)
+	#bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',-0.000017)
 	bkg_syst_a.setConstant()
 	bkg_syst_b.setConstant()
 	getattr(ws,'import')(bkg_syst_a,ROOT.RooCmdArg())

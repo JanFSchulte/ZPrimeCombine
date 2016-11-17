@@ -8,7 +8,7 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 		massDiffs.append(abs(float(evMass)-massVal)) 
 	massDiffs = sorted(massDiffs)
 	
-	if minNrEv < len(massDiffs):
+	if minNrEv <= len(massDiffs):
 		massDiff = massDiffs[minNrEv]
 	massLow = massVal - massDiff
 	massHigh = massVal + massDiff

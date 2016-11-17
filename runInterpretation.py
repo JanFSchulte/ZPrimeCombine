@@ -77,7 +77,7 @@ def runLocalSignificance(args,config,outDir,cardDir,binned):
                                 cardName = cardDir + "/" + args.config + "_combined" + "_%d"%mass + ".txt"
                         if binned:
 				cardName = cardName.split(".")[0]+"_binned.txt"
-                        subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%args.config , "-m","%d"%mass, "--signif" , "--pvalue"]
+                        subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue"]
 			for library in config.libraries:
                                 subCommand.append("--LoadLibrary")
                                 subCommand.append("userfuncs/%s"%library)
@@ -92,7 +92,7 @@ def runLocalSignificance(args,config,outDir,cardDir,binned):
                         mass += massRange[0]
 
 
-def submitLimits(args,config,outDir,binned):
+def submitLimits(args,config,outDir,binned,tag):
 
 	print "Job submission requested"
 	if config.submitTo in supportedResources:
@@ -125,11 +125,11 @@ def submitLimits(args,config,outDir,binned):
 
 
 	if args.inject:
-		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
-		name = args.config
-
-
+		name = args.config + tag
+	import time
+	timestamp = time.strftime("%Y%m%d") + "_" + time.strftime("%H%M")
         for massRange in masses:
                 mass = massRange[1]
                 while mass <= massRange[2]:
@@ -143,9 +143,9 @@ def submitLimits(args,config,outDir,binned):
 				cardName = cardName.split(".")[0] + "_binned.txt"
 			if config.submitTo == "Purdue":
 				if args.expected:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),timestamp,Libs)
 				else:
-					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),Libs)
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %d %d %d %d %d %s %s'"%(srcDir,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),timestamp,Libs)
 				subprocess.call(subCommand,shell=True)			
 			
 			mass += massRange[0]
@@ -195,6 +195,7 @@ def main():
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
         parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
+        parser.add_argument("-t", "--tag", dest = "tag", default = "", help="tag to label output")
         parser.add_argument("-m", "--mass", dest = "mass", default = -1,type=int, help="mass point")
 
         args = parser.parse_args()
@@ -203,20 +204,21 @@ def main():
         configName = "scanConfiguration_%s"%args.config
 
         config =  __import__(configName)
-
+	tag = args.tag
+	if not args.tag == "":
+		tag = "_" + args.tag
 
 	if args.inject:
-		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
-		cardDir = config.cardDir
-
+		cardDir = config.cardDir + tag
 
 	summarizeConfig(config,args,cardDir)
 	if args.redo or args.write:
 
 		for channel in config.channels:
 			print "writing datacards and workspaces for channel %s ...."%channel
-			call = ["python","writeDataCards.py","-c","%s"%channel,"-o","%s"%args.config]
+			call = ["python","writeDataCards.py","-c","%s"%channel,"-o","%s"%args.config,"-t","%s"%args.tag]
 			if args.mass > 0:
 				call.append("-m")
 				call.append("%d"%args.mass)
@@ -254,13 +256,13 @@ def main():
 	if args.write:
 		sys.exit()
 	if args.inject:
-		outDir = "results_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+		outDir = "results_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
-		outDir = "results_%s"%args.config
+		outDir = "results_%s"%args.config + tag
 	
 	if args.binned:
 		outDir = outDir + "_binned"
-	
+		
         if not os.path.exists(outDir):
                 os.makedirs(outDir)
 	
@@ -269,7 +271,7 @@ def main():
 			print "Significance calculation supported only for local running"
 			sys.exit()
 		else:
-			submitLimits(args,config,outDir,args.binned)
+			submitLimits(args,config,outDir,args.binned,tag)
 	else:
 		print "no submisson requested - running locally"
 		if args.signif:

@@ -10,7 +10,7 @@ libraries = ["ZPrimeMuonBkgPdf_cxx.so","PowFunc_cxx.so"]
 
 #channels = ["dimuon_BB","dimuon_BEpos","dimuon_BEneg"]
 channels = ["dimuon_BB","dimuon_BEpos","dimuon_BEneg"]
-numInt = 100000
+numInt = 500000
 numToys = 10
 exptToys = 500
 width = 0.006

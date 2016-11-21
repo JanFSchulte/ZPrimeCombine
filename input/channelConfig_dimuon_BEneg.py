@@ -80,6 +80,6 @@ def loadBackgroundShape(ws):
 	# background shape
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_dimuon_BEneg(mass_dimuon_BEneg, bkg_a_dimuon_BEneg, bkg_b_dimuon_BEneg, bkg_c_dimuon_BEneg,bkg_d_dimuon_BEneg,bkg_e_dimuon_BEneg,bkg_syst_a,bkg_syst_b)")		
 	ws.factory("ZPrimeMuonBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a_dimuon_BEneg, bkg_b_dimuon_BEneg, bkg_c_dimuon_BEneg,bkg_d_dimuon_BEneg,bkg_e_dimuon_BEneg,bkg_syst_a,bkg_syst_b)")		
-
+	
 	return ws
 

@@ -6,12 +6,12 @@ sys.path.append('cfgs/')
 sys.path.append('input/')
 
 
-def createSignalDataset(massVal,name,channel,width,nEvents,CB):
+def createSignalDataset(massVal,name,channel,width,nEvents,CB,tag=""):
 
 	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
 	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
-
+	ROOT.RooRandom.randomGenerator().SetSeed(0)
 	import glob
 	for f in glob.glob("userfuncs/*.cxx"):
 		ROOT.gSystem.Load(f)
@@ -54,16 +54,19 @@ def createSignalDataset(massVal,name,channel,width,nEvents,CB):
                 masses = f.readlines()
         nBkg = len(masses)
 	dataSet = ws.pdf("bkgpdf_fullRange").generate(ROOT.RooArgSet(ws.var("massFullRange")),nBkg)
-	nSignal = int(round(nEvents*config.signalEff(massVal)))
-	dataSet.append(ws.pdf("sig_pdf").generate(ROOT.RooArgSet(ws.var("massFullRange")),nSignal))
+	if nEvents > 0:
+		nSignal = int(round(nEvents*config.signalEff(massVal)))
+		dataSet.append(ws.pdf("sig_pdf").generate(ROOT.RooArgSet(ws.var("massFullRange")),nSignal))
 
 	masses = []
 	for i in range(0,dataSet.numEntries()):
 		masses.append(dataSet.get(i).getRealValue("massFullRange"))
- 	if CB:
-		f = open("%s_%d_%.3f_%d_CB.txt"%(name,massVal,width,nEvents), 'w')
+	if "toy" in tag:
+		f = open("%s%s.txt"%(name,tag), 'w')
+ 	elif CB:
+		f = open("%s_%d_%.3f_%d_CB%s.txt"%(name,massVal,width,nEvents,tag), 'w')
 	else:	
-		f = open("%s_%d_%.3f_%d.txt"%(name,massVal,width,nEvents), 'w')
+		f = open("%s_%d_%.3f_%d%s.txt"%(name,massVal,width,nEvents,tag), 'w')
 	for mass in masses:
 		f.write("%.4f\n" % mass)
 	f.close()

@@ -150,6 +150,103 @@ def submitLimits(args,config,outDir,binned,tag):
 			
 			mass += massRange[0]
 
+def submitPValues(args,config,outDir,binned,tag):
+
+	if "toy" in tag:
+		tag = "_"+tag
+
+	print "Job submission requested"
+	if config.submitTo in supportedResources:
+		print "%s resources will be used"%config.submitTo
+	else:
+		print "Computing resource not supported at the moment. Supported resources are:"
+		for resource in supportedResources:
+			print resource
+		sys.exit()	
+        if args.mass > 0:
+                masses = [[5,args.mass,args.mass]]
+        else:
+                masses = config.masses
+
+	if not os.path.exists("logFiles_%s"%args.config):
+    		os.makedirs("logFiles_%s"%args.config)
+
+	if not args.inject:
+		srcDir = os.getcwd()
+		os.chdir(srcDir+"/logFiles_%s"%args.config)
+	else:
+		srcDir = os.getcwd()
+		if not os.path.exists("logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])):
+    			os.makedirs("logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]))
+		os.chdir(srcDir+"/logFiles_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]))
+	
+	Libs = ""
+	for library in config.libraries:
+        	Libs += "%s/userfuncs/%s "%(srcDir,library)
+
+
+	if args.inject:
+		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
+	else:
+		name = args.config + tag
+	import time
+	timestamp = time.strftime("%Y%m%d") + "_" + time.strftime("%H%M")
+        for massRange in masses:
+		print "submit p-value for mass range %d - %d GeV in %d GeV steps"%(massRange[1],massRange[2],massRange[0])
+		if len(config.channels) == 1:
+			cardName = config.channels[0] + "_"
+		else:
+			cardName = args.config + "_combined" + "_"
+		if binned:
+			cardName = cardName + "binned.txt"
+		if config.submitTo == "Purdue":
+			subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValues_PURDUE.job -F '%s %s %s %d %d %d %s %s'"%(srcDir,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
+			subprocess.call(subCommand,shell=True)			
+	os.chdir(srcDir)	
+def createInputs(args,config,cardDir):
+	for channel in config.channels:
+		print "writing datacards and workspaces for channel %s ...."%channel
+		call = ["python","writeDataCards.py","-c","%s"%channel,"-o","%s"%args.config,"-t","%s"%args.tag]
+		if args.mass > 0:
+			call.append("-m")
+			call.append("%d"%args.mass)
+		if args.inject:
+			call.append("-i")
+		if args.binned:
+			call.append("-b")
+		subprocess.call(call)
+
+	print "done!"
+	tag = args.tag
+	if not args.tag == "":
+		tag = "_" + args.tag
+
+	if len(config.channels) > 1:
+		print "writing combined channel datacards ...."
+		if args.mass > 0:
+			masses = [[5,args.mass,args.mass]]
+		else:
+			masses = config.masses
+		for massRange in masses:
+			mass = massRange[1]
+			while mass <= massRange[2]:
+				command = ["combineCards.py"]	
+				for channel in config.channels:
+					if args.binned:
+						command.append( "%s=%s_%d_binned.txt"%(channel,channel,mass))			
+					else:	
+						command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
+				
+				outName = "%s%s/%s_combined_%d.txt"%(cardDir,tag,args.config,mass)
+				if args.binned:
+					outName = outName.split(".")[0]+"_binned.txt"
+				with open('%s'%outName, "w") as outfile:
+					subprocess.call(command, stdout=outfile,cwd=cardDir+tag)
+				mass += massRange[0]			
+			
+		print "done!"
+
+
 
 
 def summarizeConfig(config,args,cardDir):
@@ -192,6 +289,7 @@ def main():
         parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
         parser.add_argument("-s", "--submit", action="store_true", default=False, help="submit jobs to cluster/GRID")
         parser.add_argument("--signif", action="store_true", default=False, help="run significance instead of limits")
+        parser.add_argument("--LEE", action="store_true", default=False, help="run significance on BG only toys to estimate LEE")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
         parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
@@ -200,7 +298,9 @@ def main():
 
         args = parser.parse_args()
 	
-	
+	if args.LEE:
+		args.signif = True
+		args.submit = True
         configName = "scanConfiguration_%s"%args.config
 
         config =  __import__(configName)
@@ -214,45 +314,9 @@ def main():
 		cardDir = config.cardDir + tag
 
 	summarizeConfig(config,args,cardDir)
-	if args.redo or args.write:
+	if (args.redo or args.write) and not args.LEE:
+		createInputs(args,config,cardDir)
 
-		for channel in config.channels:
-			print "writing datacards and workspaces for channel %s ...."%channel
-			call = ["python","writeDataCards.py","-c","%s"%channel,"-o","%s"%args.config,"-t","%s"%args.tag]
-			if args.mass > 0:
-				call.append("-m")
-				call.append("%d"%args.mass)
-			if args.inject:
-				call.append("-i")
-			if args.binned:
-				call.append("-b")
-			subprocess.call(call)
-
-		print "done!"
-		if len(config.channels) > 1:
-			print "writing combined channel datacards ...."
-		        if args.mass > 0:
-                		masses = [[5,args.mass,args.mass]]
-        		else:
-                		masses = config.masses
-		        for massRange in masses:
-                		mass = massRange[1]
-                		while mass <= massRange[2]:
-					command = ["combineCards.py"]	
-					for channel in config.channels:
-						if args.binned:
-							command.append( "%s=%s_%d_binned.txt"%(channel,channel,mass))			
-						else:	
-							command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
-					
-					outName = "%s/%s_combined_%d.txt"%(cardDir,args.config,mass)
-					if args.binned:
-						outName = outName.split(".")[0]+"_binned.txt"
-					with open('%s'%outName, "w") as outfile:
-						subprocess.call(command, stdout=outfile,cwd=cardDir)
-					mass += massRange[0]			
-
-			print "done!"
 	if args.write:
 		sys.exit()
 	if args.inject:
@@ -268,8 +332,15 @@ def main():
 	
 	if args.submit:
 		if args.signif:
-			print "Significance calculation supported only for local running"
-			sys.exit()
+			if not args.LEE:
+				submitPValues(args,config,outDir,args.binned,tag)
+			else:
+				for i in range(0,1000):
+					args.tag = tag+"toy%d"%i
+					if args.redo:
+						createInputs(args,config,cardDir)
+					submitPValues(args,config,outDir,args.binned,args.tag)						
+					i += 1						
 		else:
 			submitLimits(args,config,outDir,args.binned,tag)
 	else:

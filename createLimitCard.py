@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
 
        	if args.input == "":
-		dirs=[d for d in os.listdir(os.getcwd()+"/results_%s"%args.config) if os.path.isdir(os.getcwd()+"/results_%s"%args.config+"/"+d)]
+		dirs=sorted([d for d in os.listdir(os.getcwd()+"/results_%s"%args.config) if os.path.isdir(os.getcwd()+"/results_%s"%args.config+"/"+d)])
 		inputDir = "results_%s/"%args.config+dirs[-1]
 
         else:
@@ -45,7 +45,9 @@ if __name__ == "__main__":
 		outFileName = outFileName + "_" + args.tag 	
 	if args.binned:
 		outFileName += "_binned"
-	outFile = open("%s.txt"%outFileName, "w")	
+	outFile = open("%s.txt"%outFileName, "w")
+	if args.signif: 
+		tag = ""	
 	if args.injected:
 		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:

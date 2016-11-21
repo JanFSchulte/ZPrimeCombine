@@ -200,7 +200,14 @@ def main():
 
 	from createInputs import createWS, createHistograms, createSignalDataset
 	
-	if args.inject:
+	if "toy" in tag:
+		cardDir = config.cardDir + tag
+		injectedFile = "input/%s%s.txt"%(args.chan,tag)
+		if not os.path.isfile(injectedFile):
+			print "dataset file %s does not yet exist. Will generate a dataset to use"%injectedFile
+			name = "input/%s"%(args.chan)
+			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],0,config.signalInjection["CB"],tag=tag)
+	elif args.inject:
 		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 		if config.signalInjection["CB"]:
 			injectedFile = "input/%s_%d_%.3f_%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
@@ -231,13 +238,13 @@ def main():
 		while mass <= massRange[2]:
 			if args.binned:
 				name = "%s/%s_%d_binned" % (cardDir,args.chan, mass)
-				if args.inject:	
+				if args.inject or "toy" in tag:
 					bkgYields = [createHistograms(mass,100, name,args.chan,config.width,config.correlate,config.binWidth,dataFile=injectedFile,CB=config.CB)]
 				else:	
 					bkgYields = [createHistograms(mass,100, name,args.chan,config.width,config.correlate,config.binWidth,CB=config.CB)]
 			else:
 				name = "%s/%s_%d" % (cardDir,args.chan, mass)
-				if args.inject:	
+				if args.inject or "toy" in tag:	
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB)]
 				else:	
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]

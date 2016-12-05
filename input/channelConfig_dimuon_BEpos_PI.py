@@ -3,7 +3,7 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
 
-nBkg = 1
+nBkg = -1
 
 def provideSignalScaling(mass):
         nz   = 14767                      #From Alexander (80X prompt)
@@ -40,7 +40,7 @@ def provideUncertainties(mass):
 
 	result["sigEff"] = signalEffUncert(mass)
 	result["massScale"] = 0.01
-	result ["bkgUncert"] = 0
+	result ["bkgUncert"] = 1.4
 	
 	return result
 

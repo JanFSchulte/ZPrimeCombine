@@ -236,12 +236,11 @@ def createInputs(args,config,cardDir):
 						command.append( "%s=%s_%d_binned.txt"%(channel,channel,mass))			
 					else:	
 						command.append( "%s=%s_%d.txt"%(channel,channel,mass))			
-				
-				outName = "%s%s/%s_combined_%d.txt"%(cardDir,tag,args.config,mass)
+				outName = "%s/%s_combined_%d.txt"%(cardDir,args.config,mass)
 				if args.binned:
 					outName = outName.split(".")[0]+"_binned.txt"
 				with open('%s'%outName, "w") as outfile:
-					subprocess.call(command, stdout=outfile,cwd=cardDir+tag)
+					subprocess.call(command, stdout=outfile,cwd=cardDir)
 				mass += massRange[0]			
 			
 		print "done!"

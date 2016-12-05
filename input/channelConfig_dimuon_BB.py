@@ -3,7 +3,7 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
 
-nBkg = 1
+nBkg = -1
 
 dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
@@ -42,7 +42,7 @@ def provideUncertainties(mass):
 
 	result["sigEff"] = signalEffUncert(mass)
 	result["massScale"] = 0.01
-	result ["bkgUncert"] = 0
+	result ["bkgUncert"] = 1.4
 	
 	return result
 
@@ -73,8 +73,8 @@ def loadBackgroundShape(ws):
 	
 	# background systematics
 	bkg_syst_a = RooRealVar('bkg_syst_a','bkg_syst_a',1.0)
-	#bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',0.000)
-	bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',-0.00016666666666)
+	bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',0.000)
+	#bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',-0.00016666666666)
 	bkg_syst_a.setConstant()
 	bkg_syst_b.setConstant()
 	getattr(ws,'import')(bkg_syst_a,ROOT.RooCmdArg())

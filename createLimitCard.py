@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
 
        	if args.input == "":
-		dirs=sorted([d for d in os.listdir(os.getcwd()+"/results_%s"%args.config) if os.path.isdir(os.getcwd()+"/results_%s"%args.config+"/"+d)])
-		inputDir = "results_%s/"%args.config+dirs[-1]
+		dirs=sorted([d for d in os.listdir(os.getcwd()+"/results_%s"%args.config + tag) if os.path.isdir(os.getcwd()+"/results_%s"%args.config+tag+"/"+d)])
+		inputDir = "results_%s/"%(args.config+tag)+dirs[-1]
 
         else:
                 inputDir = args.input
@@ -52,7 +52,6 @@ if __name__ == "__main__":
 		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
 		name=args.config + tag
-	print name	
 
         for massRange in config.masses:
                 mass = massRange[1]

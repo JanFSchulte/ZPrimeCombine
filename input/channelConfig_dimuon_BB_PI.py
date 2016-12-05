@@ -3,7 +3,7 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
 
-nBkg = 1
+nBkg = -1
 
 dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
@@ -42,7 +42,7 @@ def provideUncertainties(mass):
 
 	result["sigEff"] = signalEffUncert(mass)
 	result["massScale"] = 0.01
-	result ["bkgUncert"] = 0
+	result ["bkgUncert"] = 1.4
 	
 	return result
 

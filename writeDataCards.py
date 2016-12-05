@@ -99,16 +99,16 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
 	                result += "  -  "
 
 	if uncert == "bkgUncert":
-		if value != 0:
-			print "non-standard background uncertainties not supported yet"
-			sys.exit()
+		#if value != 0:
+		#	print "non-standard background uncertainties not supported yet"
+		#	sys.exit()
 		if correlate:
 			name = "bkg_unc"
 		else:
 			name = "bkg_unc_%s"%channel
 		result = "%s    lnN    -  "%name  
 		for i in range(0, nBkgs):
-			result += "  1.4  "
+			result += "  %.2f  "%(value)
 
 	if uncert == "massScale":
 		if binned:
@@ -249,7 +249,7 @@ def main():
 				else:	
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]
 			signalScale = module.provideSignalScaling(mass)*1e-7
-			nBkg = module.nBkg 
+			nBkg = 1 # only one source of background supported at the moment
 
 						
 

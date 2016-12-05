@@ -136,11 +136,16 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	getattr(ws,'import')(ds,ROOT.RooCmdArg())
 	ws.addClassDeclImportDir("shapes/")	
 	ws.importClassCode()	
-
+	if config.nBkg == -1:
+        	with open(dataFile) as f:
+                	masses = f.readlines()
+		nBkgTotal = len(masses)
+	else:
+		nBkgTotal = config.nBkg
 	if write:
 		ws.writeToFile("%s.root"%name,True)
         	from tools import getBkgEstInWindow
-        	return getBkgEstInWindow(ws,massLow,massHigh,dataFile)
+        	return getBkgEstInWindow(ws,massLow,massHigh,nBkgTotal)
 	else:
 		return ws
 
@@ -149,13 +154,13 @@ def getBinning(mass):
 
 
 	if mass < 700:
-		return [1,100000]
+		return [1,1000000]
 	if mass < 1000:
-		return [1,500000]
+		return [1,1000000]
 	elif mass < 2000:
-		return [10,1000000]
+		return [2,1000000]
 	else:
-		return [20,500000]
+		return [5,500000]
 
 
 def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,dataFile="",CB=True):
@@ -170,7 +175,13 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
 	if dataFile == "":
 		dataFile = config.dataFile
 	effWidth = width + config.getResolution(massVal)
-	
+	if config.nBkg == -1:
+        	with open(dataFile) as f:
+                	masses = f.readlines()
+		nBkgTotal = len(masses)
+	else:
+		nBkgTotal = config.nBkg
+
 	from tools import getMassRange
 	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
 	if not correlateMass:
@@ -182,7 +193,7 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
 	ws = createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile=dataFile,CB=CB,write=False)
         
 	from tools import getBkgEstInWindow
-	nBackground = getBkgEstInWindow(ws,massLow,massHigh,dataFile)
+	nBackground = getBkgEstInWindow(ws,massLow,massHigh,nBkgTotal)
 	binWidth = getBinning(massVal)[0]
 	numEvents = getBinning(massVal)[1]
 	nBins = int((massHigh - massLow)/binWidth) 

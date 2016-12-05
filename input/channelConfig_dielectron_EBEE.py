@@ -2,8 +2,9 @@ import ROOT,sys
 ROOT.gROOT.SetBatch(True)
 ROOT.gErrorIgnoreLevel = 1 
 from ROOT import *
-
-nBkg = 1
+from math import sqrt
+nBkg = 8446.2
+#nBkg = -1
 
 dataFile = "input/diEleEBEE_2016_promptRECOICHEP.txt"
 
@@ -31,7 +32,7 @@ def provideUncertainties(mass):
 
 	result["sigEff"] = [1.10] # must be list in case the uncertainty is asymmetric
 	result["massScale"] = 0.01
-	result ["bkgUncert"] = 0
+	result ["bkgUncert"] = 1.4
 	
 	return result
 
@@ -44,7 +45,7 @@ def getResolution(mass):
 	res_n = 10.0
 	res_c = 1.56
 	res_slope = 0
-	return res_scale*0.01*((res_s*res_s/mass+res_n*res_n/mass/mass+res_c*res_c)**0.5+res_slope*mass)	
+	return res_scale*0.01*(sqrt(res_s*res_s/mass+res_n*res_n/mass/mass+res_c*res_c)+res_slope*mass)	
 
 
 def loadBackgroundShape(ws):

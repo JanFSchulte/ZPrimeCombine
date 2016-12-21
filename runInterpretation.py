@@ -186,9 +186,9 @@ def submitPValues(args,config,outDir,binned,tag):
 
 
 	if args.inject:
-		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
+		name = "%d_%.4f_%d"%(config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
-		name = args.config + tag
+		name = tag
 	import time
 	timestamp = time.strftime("%Y%m%d") + "_" + time.strftime("%H%M")
         for massRange in masses:
@@ -200,7 +200,7 @@ def submitPValues(args,config,outDir,binned,tag):
 		if binned:
 			cardName = cardName + "binned.txt"
 		if config.submitTo == "Purdue":
-			subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValues_PURDUE.job -F '%s %s %s %d %d %d %s %s'"%(srcDir,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
+			subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesWS_PURDUE.job -F '%s %s %s %s %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
 			subprocess.call(subCommand,shell=True)			
 	os.chdir(srcDir)	
 def createInputs(args,config,cardDir):
@@ -214,6 +214,8 @@ def createInputs(args,config,cardDir):
 			call.append("-i")
 		if args.binned:
 			call.append("-b")
+		if args.signif:
+			call.append("-s")
 		subprocess.call(call)
 
 	print "done!"

@@ -64,8 +64,8 @@ def loadBackgroundShape(ws):
 	getattr(ws,'import')(bkg_d,ROOT.RooCmdArg())
 	
 	# background systematics
-	bkg_syst_a = RooRealVar('bkg_syst_a','bkg_syst_a',1.0)
-	bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',0.000)
+	bkg_syst_a = RooRealVar('bkg_syst_a_dielectron_EBEE','bkg_syst_a_dielectron_EBEE',1.0)
+	bkg_syst_b = RooRealVar('bkg_syst_b_dielectron_EBEE','bkg_syst_b_dielectron_EBEE',0.000)
 	#bkg_syst_b = RooRealVar('bkg_syst_b','bkg_syst_b',-0.000017)
 	bkg_syst_a.setConstant()
 	bkg_syst_b.setConstant()
@@ -73,7 +73,7 @@ def loadBackgroundShape(ws):
 	getattr(ws,'import')(bkg_syst_b,ROOT.RooCmdArg())
 	
 	# background shape
-	ws.factory("ZPrimeBkgPdf::bkgpdf_dielectron_EBEE(mass_dielectron_EBEE, bkg_a_dielectron_EBEE, bkg_b_dielectron_EBEE, bkg_c_dielectron_EBEE,bkg_d_dielectron_EBEE,bkg_syst_a,bkg_syst_b)")		
-	ws.factory("ZPrimeBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a_dielectron_EBEE, bkg_b_dielectron_EBEE, bkg_c_dielectron_EBEE,bkg_d_dielectron_EBEE,bkg_syst_a,bkg_syst_b)")		
+	ws.factory("ZPrimeBkgPdf::bkgpdf_dielectron_EBEE(mass_dielectron_EBEE, bkg_a_dielectron_EBEE, bkg_b_dielectron_EBEE, bkg_c_dielectron_EBEE,bkg_d_dielectron_EBEE,bkg_syst_a_dielectron_EBEE,bkg_syst_b_dielectron_EBEE)")		
+	ws.factory("ZPrimeBkgPdf::bkgpdf_fullRange(massFullRange, bkg_a_dielectron_EBEE, bkg_b_dielectron_EBEE, bkg_c_dielectron_EBEE,bkg_d_dielectron_EBEE,bkg_syst_a_dielectron_EBEE,bkg_syst_b_dielectron_EBEE)")		
 
 	return ws

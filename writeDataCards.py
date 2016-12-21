@@ -77,13 +77,14 @@ def getChannelBlock(nBkgs,bkgYields,signalScale,chan):
 		result+=" %d"%(i+1)
 	result +="\n"
 	result += "rate         %.2f "%signalScale
+	#result += "rate         1 "
 	for i in range (0, nBkgs):
 		result+= " %.2f"%bkgYields[i]
 	return result
  
 
 
-def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
+def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned,bkgYields,signif):
 
 	if uncert == "sigEff":
 		if correlate:
@@ -106,10 +107,13 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned):
 			name = "bkg_unc"
 		else:
 			name = "bkg_unc_%s"%channel
-		result = "%s    lnN    -  "%name  
+		result = "%s lnN   -  "%(name)  
 		for i in range(0, nBkgs):
-			result += "  %.2f  "%(value)
-
+			if not signif:
+				result += "  %.2f  "%(value)
+			#result += "  %.2f  "%(1.4)
+			else:
+				result += " %.2f"%(1.+bkgYields[i]**0.5/bkgYields[i])
 	if uncert == "massScale":
 		if binned:
 			if correlate:
@@ -180,6 +184,7 @@ def main():
 	parser.add_argument("-o", "--options", dest = "options", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
 	parser.add_argument("-t", "--tag", dest = "tag", default="", help="tag")
+	parser.add_argument("-s", "--signif", action="store_true", default=False, help="write card for significances")
 				
 	args = parser.parse_args()	
 	tag = args.tag
@@ -283,7 +288,7 @@ def main():
 			uncertBlock = ""
 			uncerts = module.provideUncertainties(mass)
 			for uncert in config.systematics:
-				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass,args.chan,config.correlate,args.binned)
+				uncertBlock += getUncert(uncert,uncerts[uncert],nBkg,mass,args.chan,config.correlate,args.binned,bkgYields,args.signif)
 			
 			channelDict["systs"] = uncertBlock
 

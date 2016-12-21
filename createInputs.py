@@ -5,6 +5,17 @@ from ROOT import *
 sys.path.append('cfgs/')
 sys.path.append('input/')
 
+def setIntegrator(ws,name):
+	config = RooNumIntConfig(ws.pdf(name).getIntegratorConfig())
+	
+	config.method1D().setLabel("RooAdaptiveGaussKronrodIntegrator1D")
+	config.getConfigSection("RooAdaptiveGaussKronrodIntegrator1D").setCatLabel("method","61Points")
+	config.getConfigSection("RooAdaptiveGaussKronrodIntegrator1D").setRealValue("maxSeg",1000)
+	config.method1D().setLabel("RooAdaptiveGaussKronrodIntegrator1D")
+	config.getConfigSection("RooAdaptiveGaussKronrodIntegrator1D").setCatLabel("method","61Points")
+	config.getConfigSection("RooAdaptiveGaussKronrodIntegrator1D").setRealValue("maxSeg",1000)
+	ws.pdf(name).setIntegratorConfig(config)
+
 
 def createSignalDataset(massVal,name,channel,width,nEvents,CB,tag=""):
 
@@ -91,10 +102,8 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	from tools import getMassRange
 	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
 	ws = RooWorkspace(channel)
-
         massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200, 5000 )
         getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
-
 
 	mass = RooRealVar('mass_%s'%channel,'mass_%s'%channel,massVal, massLow, massHigh )
 	getattr(ws,'import')(mass,ROOT.RooCmdArg())
@@ -129,7 +138,13 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 
 	else:
 		ws.factory("Voigtian::sig_pdf_%s(mass_%s, peak_scaled%s,  %.3f, %.3f)"%(channel,channel,peakName,massVal*width,massVal*config.getResolution(massVal)))
+	setIntegrator(ws,'sig_pdf_%s'%channel)
+
 	ws = config.loadBackgroundShape(ws)
+
+	setIntegrator(ws,'bkgpdf_fullRange')
+	setIntegrator(ws,'bkgpdf_%s'%channel)
+
 	ds = RooDataSet.read(dataFile,RooArgList(mass))
 	ds.SetName('data_%s'%channel)
 	ds.SetTitle('data_%s'%channel)

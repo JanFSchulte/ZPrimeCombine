@@ -46,8 +46,8 @@ if __name__ == "__main__":
 	if args.binned:
 		outFileName += "_binned"
 	outFile = open("%s.txt"%outFileName, "w")
-	if args.signif: 
-		tag = ""	
+#	if args.signif: 
+#		tag = ""	
 	if args.injected:
 		name = "%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 	else:
@@ -67,8 +67,8 @@ if __name__ == "__main__":
                                 limitTree.Add(fileName+"/limit")
                                 for entry in limitTree:
 					if args.signif:
-                                		outFile.write("%d %.10f\n"%(mass,entry.limit))        
+                                		outFile.write("%d %.15f\n"%(mass,entry.limit))        
                                 	else:	
-						outFile.write("%d %.10f\n"%(mass,entry.limit*1e-7))        
+						outFile.write("%d %.15f\n"%(mass,entry.limit*1e-7))        
                         mass += massRange[0]
 	outFile.close()

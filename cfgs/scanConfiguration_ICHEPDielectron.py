@@ -18,5 +18,5 @@ submitTo = "Purdue"
 
 binWidth = 10
 CB = False
-signalInjection = {"mass":2000,"width":0.006,"nEvents":10,"CB":True}
+signalInjection = {"mass":750,"width":0.1000,"nEvents":100,"CB":True}
 		

@@ -4,7 +4,6 @@ systematics = ["sigEff","bkgUncert","massScale"]
 correlate = False
 #systematics = ["massScale"]
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
-cardDir = "dataCards_ICHEPBEneg"
 
 libraries = ["ZPrimeMuonBkgPdf_cxx.so","PowFunc_cxx.so"]
 

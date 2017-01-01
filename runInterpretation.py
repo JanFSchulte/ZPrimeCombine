@@ -307,12 +307,10 @@ def main():
         config =  __import__(configName)
 	tag = args.tag
 	if not args.tag == "":
-		tag = "_" + args.tag
+		args.tag = "_" + args.tag
 
-	if args.inject:
-		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
-	else:
-		cardDir = config.cardDir + tag
+	from tools import getCardDir, getOutDir
+	cardDir = getCardDir(args,config)
 
 	summarizeConfig(config,args,cardDir)
 	if (args.redo or args.write) and not args.LEE:
@@ -320,13 +318,8 @@ def main():
 
 	if args.write:
 		sys.exit()
-	if args.inject:
-		outDir = "results_%s_%d_%.4f_%d"%(args.config,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
-	else:
-		outDir = "results_%s"%args.config + tag
-	
-	if args.binned:
-		outDir = outDir + "_binned"
+
+	outDir = getOutDir(args,config)
 		
         if not os.path.exists(outDir):
                 os.makedirs(outDir)
@@ -334,16 +327,16 @@ def main():
 	if args.submit:
 		if args.signif:
 			if not args.LEE:
-				submitPValues(args,config,outDir,args.binned,tag)
+				submitPValues(args,config,outDir,args.binned,args.tag)
 			else:
 				for i in range(0,1000):
-					args.tag = tag+"toy%d"%i
+					args.tag = args.tag+"toy%d"%i
 					if args.redo:
 						createInputs(args,config,cardDir)
 					submitPValues(args,config,outDir,args.binned,args.tag)						
 					i += 1						
 		else:
-			submitLimits(args,config,outDir,args.binned,tag)
+			submitLimits(args,config,outDir,args.binned,args.tag)
 	else:
 		print "no submisson requested - running locally"
 		if args.signif:

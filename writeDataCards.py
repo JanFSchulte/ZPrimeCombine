@@ -181,7 +181,7 @@ def main():
 	parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
 	parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
-	parser.add_argument("-o", "--options", dest = "options", default="", help="name of config file")
+	parser.add_argument("-o", "--options", dest = "config", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
 	parser.add_argument("-t", "--tag", dest = "tag", default="", help="tag")
 	parser.add_argument("-s", "--signif", action="store_true", default=False, help="write card for significances")
@@ -197,23 +197,22 @@ def main():
                 gROOT.ProcessLine(".L "+f+"+")
 
 
-	configName = "scanConfiguration_%s"%args.options
+	configName = "scanConfiguration_%s"%args.config
 	config =  __import__(configName)
 
 	moduleName = "channelConfig_%s"%args.chan
 	module =  __import__(moduleName)
 
 	from createInputs import createWS, createHistograms, createSignalDataset
-	
+	from tools import getCardDir
+	cardDir = getCardDir(args,config)	
 	if "toy" in tag:
-		cardDir = config.cardDir + tag
 		injectedFile = "input/%s%s.txt"%(args.chan,tag)
 		if not os.path.isfile(injectedFile):
 			print "dataset file %s does not yet exist. Will generate a dataset to use"%injectedFile
 			name = "input/%s"%(args.chan)
 			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],0,config.signalInjection["CB"],tag=tag)
 	elif args.inject:
-		cardDir = "%s_%d_%.4f_%d"%(config.cardDir,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + tag
 		if config.signalInjection["CB"]:
 			injectedFile = "input/%s_%d_%.3f_%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
 		else:	
@@ -222,8 +221,6 @@ def main():
 			print "dataset file %s does not yet exist. Will generate a dataset to use"%injectedFile
 			name = "input/%s"%(args.chan)
 			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["CB"])
-	else:
-		cardDir = config.cardDir + tag
 
 	if not os.path.exists(cardDir):
     		os.makedirs(cardDir)

@@ -3,7 +3,6 @@ systematics = ["sigEff","bkgUncert","massScale"] # list of systematics to consid
 correlate = False # correlate systematics betweeen channels? 
 
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]] #parameters of mass scan
-cardDir = "dataCards_ICHEPDimuonCB" # where to put the datacards
 
 libraries = ["ZPrimeMuonBkgPdf_cxx.so","PowFunc_cxx.so"]
 

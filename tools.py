@@ -1,4 +1,25 @@
+def getCardDir(args,config):
 
+	if args.inject:
+		cardDir = "dataCards_" + args.config + "_%d_%.4f_%d"%(config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + args.tag
+	else:
+		cardDir = "dataCards_" + args.config +  args.tag
+	
+	if args.binned:
+		cardDir = cardDir + "_binned"
+
+	return cardDir
+def getOutDir(args,config):
+
+	if args.inject:
+		outDir = "results_" + args.config + "_%d_%.4f_%d"%(config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + args.tag
+	else:
+		outDir = "results_" + args.config +  args.tag
+
+	if args.binned:
+		outDir = cardDir + "_binned"
+
+	return outDir
 
 def getMassRange(massVal,minNrEv,effWidth,dataFile):
 	with open(dataFile) as f:

@@ -2,30 +2,31 @@
 
 #echo "first arg: "$1
 DATE=`date +%Y%m%d`
-Name=$1
-SRC=$2
-DATACARDSTUB=$3
-MIN=$4
-MAX=$5
-STEP=$6
-TAG=$7
+CONFIG=$1
+LABEL=$2
+SRC=$3
+DATACARDSTUB=$4
+MIN=$5
+MAX=$6
+STEP=$7
+TAG=$8
 echo ${SRC}
 echo $DATACARDSTUB
 echo $MIN
 echo $MAX
 echo $STEP
-
+echo $LABEL
 ARGS=("$@")
 LIBPART=""
 END=$#
-for ((i=7;i<END;i++)); do
+for ((i=8;i<END;i++)); do
     LIBPART+=" --LoadLibrary "
     echo ${ARGS[$i]}
     LIBPART+=${ARGS[$i]}
 done
 echo $LIBPART
 
-
+Name=${CONFIG}${LABEL:1}
 
 
 # PBS8parameters
@@ -113,6 +114,9 @@ ls
 #----------------------------------------------------------
 #
 for ((i=MIN;i<=MAX;i=i+STEP)); do
+cd $SRC
+python runInterpretation.py -c $CONFIG -m $i -w -t ${LABEL:2} --signif
+cd ${WORKDIR}
 export DATACARD=$DATACARDSTUB${i}.txt
 echo $DATACARD
 for file in ${SRCDIR}/*$MASS*.root; do cp "$file" dataCards_${Name} ;done

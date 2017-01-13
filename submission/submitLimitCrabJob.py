@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+import os
+import optparse
+#this rather ancient parser is forced upon us by crab (it uses an old version of python)
+parser = optparse.OptionParser(description='submits jobs to crab')
+parser.add_option('--gridPack')
+parser.add_option('--nrJobs',help='nrjobs')
+parser.add_option('--nToys',help='number of limits per job')
+parser.add_option('--nIter',help='number of iterations in chain')
+parser.add_option('--expected',help='calculate expected limits?')
+parser.add_option('--mass',help='res mass')
+parser.add_option('--outputTag',help='outputTag')
+parser.add_option('--crabConfig',help='crab config file to run',default="crab_base.py")
+parser.add_option('--config',help='limit config file to run',default="ICHEPDimuon")
+options,args = parser.parse_args()
+if not options.mass or not options.outputTag or not options.gridPack or not options.nrJobs:
+    parser.error("mass, outputTag,config, gridPack, nrJobs are manditory")
+print options.config
+
+outputId = options.outputTag
+outputId = outputId+"_"+options.mass
+if options.expected:
+	outputFile="expectedLimit_%s_%s_%s.root" % (options.config,options.outputTag,options.mass)
+else:	
+	outputFile="observedLimit_%s_%s_%s.root" % (options.config,options.outputTag,options.mass)
+
+#so cmssw var parsing will ignore anything before the first ".py"
+#which is why we dont have .py on our script
+#and have a dummy arguement which means it'll ignore the 1 passed by crab
+#sigh...
+scriptArgs="['dummy=dummy.py','tarFile=%s','outputTag=%s','mass=%s','nIter=%s','nToys=%s','expected=%s']" % (options.gridPack,options.outputTag,options.mass,options.nIter,options.nToys,options.expected)
+print scriptArgs
+import datetime
+currTime=datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+workingDir="limits_"+outputId+"_"+currTime
+
+with open(options.crabConfig,"r") as configFile:
+    configLines = configFile.readlines()
+   
+tempConfig="crab_base_autoGen.py"
+with open(tempConfig,"w") as tempConfigFile:
+    for line in configLines:
+        line=line.replace("TOSED:SCRIPTARGS",scriptArgs)
+        line=line.replace("TOSED:GRIDPACK",options.gridPack)
+        line=line.replace("TOSED:OUTPUTFILE",outputFile)
+        line=line.replace("TOSED:NRJOBS",options.nrJobs)
+        line=line.replace("TOSED:PRIMARYID",options.outputTag)
+        line=line.replace("TOSED:SECONDARYID","test")
+        line=line.replace("TOSED:REQUESTNAME",workingDir)
+
+        tempConfigFile.write(line)
+
+
+
+
+crabSubmitCmd = "crab submit -c "+tempConfig
+import os
+os.system(crabSubmitCmd)
+

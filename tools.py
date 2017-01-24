@@ -4,6 +4,9 @@ def getCardDir(args,config):
 		cardDir = "dataCards_" + args.config + "_%d_%.4f_%d"%(config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + args.tag
 	else:
 		cardDir = "dataCards_" + args.config +  args.tag
+
+	if args.DM:
+		cardDir = cardDir + "_DM"
 	
 	if args.binned:
 		cardDir = cardDir + "_binned"
@@ -15,9 +18,11 @@ def getOutDir(args,config):
 		outDir = "results_" + args.config + "_%d_%.4f_%d"%(config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"]) + args.tag
 	else:
 		outDir = "results_" + args.config +  args.tag
+	if args.DM:
+		outDir = outDir + "_DM"
 
 	if args.binned:
-		outDir = cardDir + "_binned"
+		outDir = outDir + "_binned"
 
 	return outDir
 
@@ -38,7 +43,7 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 		massLow = massVal - 6*effWidth*massVal
 	if (massVal+6*effWidth*massVal) > massHigh:
 		massHigh = massVal + 6*effWidth*massVal
-	massLow= max(massLow,200)
+	massLow= max(massLow,120)
 	return massLow, massHigh
 
 
@@ -48,3 +53,13 @@ def getBkgEstInWindow(ws,massLow,massHigh,nBkgTotal):
 	argSet = ROOT.RooArgSet(ws.var("massFullRange"))
 	integral = ws.pdf("bkgpdf_fullRange").createIntegral(argSet,ROOT.RooFit.NormSet(argSet), ROOT.RooFit.Range("window"))
 	return nBkgTotal*integral.getVal()
+
+
+
+def createGridPack():
+
+	import subprocess
+	args = ['tar', '-cvf', 'gridPack.tar','cfgs/',"input/",'writeDataCards.py','runInterpretation.py','createInputs.py']
+	subprocess.call(args)
+
+

@@ -16,20 +16,18 @@ parser.add_option('--config',help='limit config file to run',default="ICHEPDimuo
 options,args = parser.parse_args()
 if not options.mass or not options.outputTag or not options.gridPack or not options.nrJobs:
     parser.error("mass, outputTag,config, gridPack, nrJobs are manditory")
-print options.config
 
 outputId = options.outputTag
 outputId = outputId+"_"+options.mass
-if options.expected:
+if options.expected==str(1):
 	outputFile="expectedLimit_%s_%s_%s.root" % (options.config,options.outputTag,options.mass)
 else:	
-	outputFile="observedLimit_%s_%s_%s.root" % (options.config,options.outputTag,options.mass)
-
+	outputFile="observedLimit_%s_%s.root" % (options.config,options.outputTag)
 #so cmssw var parsing will ignore anything before the first ".py"
 #which is why we dont have .py on our script
 #and have a dummy arguement which means it'll ignore the 1 passed by crab
 #sigh...
-scriptArgs="['dummy=dummy.py','tarFile=%s','outputTag=%s','mass=%s','nIter=%s','nToys=%s','expected=%s']" % (options.gridPack,options.outputTag,options.mass,options.nIter,options.nToys,options.expected)
+scriptArgs="['dummy=dummy.py','tarFile=%s','outputTag=%s','mass=%s','nIter=%s','nToys=%s','expected=%s','config=%s']" % (options.gridPack,options.outputTag,options.mass,options.nIter,options.nToys,options.expected,options.config)
 print scriptArgs
 import datetime
 currTime=datetime.datetime.now().strftime('%Y%m%d_%H%M%S')

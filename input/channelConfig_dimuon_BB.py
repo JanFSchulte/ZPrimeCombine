@@ -7,12 +7,23 @@ nBkg = -1
 
 dataFile = "input/dimuon_13TeV_2016_ICHEPDataset_BB.txt"
 
-def provideSignalScaling(mass):
+def provideSignalScaling(mass,DM=False):
 	nz   =  21152                      #From Alexander (80X prompt)
 	nsig_scale = 1017.9903604773663       # prescale/eff_z (123.685828798/0.1215) -->derives the lumi 
 	eff = signalEff(mass)
-	result = (nsig_scale*nz*eff)
+	if DM:
+	    	xsecRatio = {}
+	    	fileZPrimePsi=open('tools/xsec_PSI.txt','r')
+    		for entries in fileZPrimePsi:
+        		entry=entries.split()
+        		xsecRatio[entry[0]] = float(entry[1])*1.3/1928 
+
+		result = nz*nsig_scale*eff*xsecRatio[str(mass)]
+	else:		
+		result = (nsig_scale*nz*eff)
 	return result
+
+	
 
 def signalEff(mass):
 

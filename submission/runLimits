@@ -67,7 +67,7 @@ args.register('tarFile',"gridPack.tar",
                VarParsing.VarParsing.multiplicity.singleton,
                VarParsing.VarParsing.varType.string,          
                "input tar file")
-args.register('outputTag',  "test", 
+args.register('outputTag',  "crabTest", 
               VarParsing.VarParsing.multiplicity.singleton,
               VarParsing.VarParsing.varType.string,          
               "output tag")
@@ -104,18 +104,49 @@ import glob, ROOT
 for f in glob.glob("userfuncs/*.cxx"):
 	ROOT.gSystem.Load(f)
 
+sys.path.append('cfgs/')
+configName = "scanConfiguration_%s"%args.config
+config =  __import__(configName)
+
 import subprocess
 
 print os.listdir(os.getcwd())
 print os.listdir("dataCards_%s_%s"%(args.config,args.outputTag))
-ws = "dataCards_%s_%s/%s_combined_%s.root"%(args.config,args.outputTag,args.config,str(int(args.mass)))
+if len(config.channels) == 1:
+	ws = "dataCards_%s_%s/%s_%s.root"%(args.config,args.outputTag,config.channels[0],str(int(args.mass)))
+else:	
+	ws = "dataCards_%s_%s/%s_combined_%s.root"%(args.config,args.outputTag,args.config,str(int(args.mass)))
+
+from runInterpretation import getRange
+
+rMax = getRange(int(args.mass)) 
+
+libPart = []
+for lib in config.libraries:
+	libPart.append("--LoadLibrary")
+	libPart.append("userfuncs/"+lib)
+
 
 if args.expected:
-	limitArgs=["./combine","-d","%s"%ws,"-M","MarkovChainMC", "-n" "%s"%args.config , "-m",str(int(args.mass)), "-i", str(args.nIter) , "--tries", "1",  "-t", str(args.nToys), "--prior","flat","--rMax","40","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/PowFunc_cxx.so"]
+	limitArgs=["./combine","-d","%s"%ws,"-M","MarkovChainMC", "-n" "%s"%args.config , "-m",str(int(args.mass)), "-i", str(args.nIter) , "--tries", "1",  "-t", str(args.nToys), "--prior","flat","--rMax",str(rMax),"-s","0"]
+	limitArgs += libPart
 	mvCmd = ["mv higgsCombine%s.MarkovChainMC* expectedLimit_%s_%s_%d.root"%(args.config,args.config,args.outputTag,int(args.mass))]
 else:
-	limitArgs=["./combine","-d","%s"%ws,"-M","MarkovChainMC", "-n" "%s"%args.config , "-m",str(int(args.mass)), "-i", str(args.nIter), "--tries", str(args.nToys) ,  "--prior","flat","--rMax","40","--LoadLibrary","userfuncs/ZPrimeMuonBkgPdf_cxx.so","--LoadLibrary","userfuncs/PowFunc_cxx.so"]
-	mvCmd = ["mv higgsCombine%s.MarkovChainMC* observedLimit_%s_%s_%d.root"%(args.config,args.config,args.outputTag,int(args.mass))]
+	massPoint = int(sys.argv[1])
+	masses = config.masses
+	massList = []
+	for massRange in masses:
+		mass = massRange[1]
+		while mass < massRange[2]:
+			massList.append(mass)
+			mass += massRange[0]		
+	args.mass = massList[massPoint-1]	
+	print "calculating expected limit for mass %s"%(str(int(args.mass)))
+	ws = "dataCards_%s_%s/%s_combined_%s.root"%(args.config,args.outputTag,args.config,str(int(args.mass)))
+	
+	limitArgs=["./combine","-d","%s"%ws,"-M","MarkovChainMC", "-n" "%s"%args.config , "-m",str(int(args.mass)), "-i", str(args.nIter), "--tries", str(args.nToys) ,  "--prior","flat","--rMax",str(rMax),"-s","0"]
+	limitArgs += libPart
+	mvCmd = ["mv higgsCombine%s.MarkovChainMC* observedLimit_%s_%s.root"%(args.config,args.config,args.outputTag)]
 
 result= subprocess.Popen(limitArgs,stdout=subprocess.PIPE).communicate()[0].splitlines()
 for line in result:

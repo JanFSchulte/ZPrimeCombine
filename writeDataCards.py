@@ -31,9 +31,10 @@ def printProgress (iteration, total, prefix = '', suffix = '', decimals = 2, bar
         sys.stdout.flush()
 
 
+##Data card for Zprime -> ll analysis, created on %(date)s at %(time)s using revision %(hash)s of the package
 
 cardTemplate='''
-##Data card for Zprime -> ll analysis, created on %(date)s at %(time)s using revision %(hash)s of the package
+##Data card for Zprime -> ll analysis, created on %(date)s at %(time)s
 imax 1  number of channels
 jmax %(nBkgs)d  number of backgrounds
 kmax *  number of nuisance parameters (sources of systematical uncertainties)
@@ -109,11 +110,15 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned,bkgYields,sign
 			name = "bkg_unc_%s"%channel
 		result = "%s lnN   -  "%(name)  
 		for i in range(0, nBkgs):
+			#value = 0.8
 			if not signif:
+
+#				result += " %.2f"%(1.+bkgYields[i]**0.5/bkgYields[i])
 				result += "  %.2f  "%(value)
 			#result += "  %.2f  "%(1.4)
 			else:
 				result += " %.2f"%(1.+bkgYields[i]**0.5/bkgYields[i])
+#				result += "  %.2f  "%(value)
 	if uncert == "massScale":
 		if binned:
 			if correlate:
@@ -179,12 +184,14 @@ def main():
 
 	parser = argparse.ArgumentParser(description='Data writer for Zprime -> ll analysis interpretation in combine')
 	parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
+	parser.add_argument("--expected", action="store_true", default=False, help="write datacards for expected limit mass binning")
 	parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
 	parser.add_argument("-o", "--options", dest = "config", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
 	parser.add_argument("-t", "--tag", dest = "tag", default="", help="tag")
 	parser.add_argument("-s", "--signif", action="store_true", default=False, help="write card for significances")
+	parser.add_argument("--DM", action="store_true", default=False, help="write cards for DM interpretation")
 				
 	args = parser.parse_args()	
 	tag = args.tag
@@ -227,8 +234,10 @@ def main():
 	if args.mass > 0:
 		masses = [[5,args.mass,args.mass]]
 	else:
-		masses = config.masses	
-	nMasses = 0	
+		masses = config.masses
+		if args.expected:
+			masses = config.massesExp	
+	nMasses = 0
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
@@ -250,7 +259,11 @@ def main():
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB)]
 				else:	
 					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]
-			signalScale = module.provideSignalScaling(mass)*1e-7
+			
+			if args.DM:
+				signalScale = module.provideSignalScaling(mass,DM=True)
+			else:	
+				signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = 1 # only one source of background supported at the moment
 
 						
@@ -259,7 +272,7 @@ def main():
 
 			channelDict["date"] = time.strftime("%d/%m/%Y")
 			channelDict["time"] = time.strftime("%H:%M:%S")
-			channelDict["hash"] = get_git_revision_hash()	
+			#channelDict["hash"] = get_git_revision_hash()	
 	
 			channelDict["bin"] = args.chan
 

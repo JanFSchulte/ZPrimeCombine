@@ -8,11 +8,21 @@ nBkg = 9444.1
 
 dataFile = "input/diEleEBEB_2016_promptRECOICHEP.txt"
 
-def provideSignalScaling(mass):
+def provideSignalScaling(mass,DM=False):
 	nz   =  1900930                      
 	nsig_scale = 10.91       
 	eff = signalEff(mass)
-	result = (nsig_scale*nz*eff)
+	if DM:
+	    	xsecRatio = {}
+	    	fileZPrimePsi=open('tools/xsec_PSI.txt','r')
+    		for entries in fileZPrimePsi:
+        		entry=entries.split()
+        		xsecRatio[entry[0]] = float(entry[1])*1.3/1928 
+
+		result = nz*nsig_scale*eff*xsecRatio[str(mass)]
+	else:		
+		result = (nsig_scale*nz*eff)
+
 	return result
 
 def signalEff(mass):

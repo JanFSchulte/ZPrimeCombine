@@ -19,7 +19,7 @@ def setIntegrator(ws,name):
 
 def createSignalDataset(massVal,name,channel,width,nEvents,CB,tag=""):
 
-	#ROOT.gSystem.Load("shapes/ZPrimeMuonBkgPdf_cxx.so")
+	#ROOT.gSystem.Load("shapes/ZPrimeted onine check-inMuonBkgPdf_cxx.so")
 #	ROOT.gSystem.AddIncludePath("-Ishapes"
 	ROOT.RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
 	ROOT.RooRandom.randomGenerator().SetSeed(0)
@@ -31,11 +31,11 @@ def createSignalDataset(massVal,name,channel,width,nEvents,CB,tag=""):
 	
 	dataFile = config.dataFile
 	ws = RooWorkspace("tempWS")
-        mass = RooRealVar('massFullRange','massFullRange',massVal, 200, 5000 )
+        mass = RooRealVar('massFullRange','massFullRange',massVal, 120, 5000 )
         getattr(ws,'import')(mass,ROOT.RooCmdArg())
 
 
-	peak = RooRealVar("peak","peak",massVal, 200,5000)
+	peak = RooRealVar("peak","peak",massVal, 120,5000)
 	peak.setConstant()
 	getattr(ws,'import')(peak,ROOT.RooCmdArg())
 
@@ -102,7 +102,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 	from tools import getMassRange
 	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
 	ws = RooWorkspace(channel)
-        massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200, 5000 )
+        massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 120, 5000 )
         getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
 
 	mass = RooRealVar('mass_%s'%channel,'mass_%s'%channel,massVal, massLow, massHigh )

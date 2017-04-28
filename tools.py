@@ -33,7 +33,6 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 	for evMass in masses:
 		massDiffs.append(abs(float(evMass)-massVal)) 
 	massDiffs = sorted(massDiffs)
-	
 	if minNrEv <= len(massDiffs):
 		massDiff = massDiffs[minNrEv]
 	massLow = massVal - massDiff
@@ -43,7 +42,7 @@ def getMassRange(massVal,minNrEv,effWidth,dataFile):
 		massLow = massVal - 6*effWidth*massVal
 	if (massVal+6*effWidth*massVal) > massHigh:
 		massHigh = massVal + 6*effWidth*massVal
-	massLow= max(massLow,120)
+	massLow= max(massLow,200)
 	return massLow, massHigh
 
 

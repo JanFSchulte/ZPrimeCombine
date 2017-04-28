@@ -266,7 +266,6 @@ def main():
 				signalScale = module.provideSignalScaling(mass)*1e-7
 			nBkg = 1 # only one source of background supported at the moment
 
-						
 
 			channelDict = {}
 

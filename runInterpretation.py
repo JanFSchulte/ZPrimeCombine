@@ -207,7 +207,7 @@ def submitLimits(args,config,outDir,binned,tag):
 						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),timestamp,Libs)
 
 				subprocess.call(subCommand,shell=True)			
-			
+				time.sleep(0.5)
 			mass += massRange[0]
 
 def submitPValues(args,config,outDir,binned,tag):

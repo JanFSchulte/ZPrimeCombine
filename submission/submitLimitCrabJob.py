@@ -37,6 +37,9 @@ with open(options.crabConfig,"r") as configFile:
     configLines = configFile.readlines()
    
 tempConfig="crab_base_autoGen.py"
+
+lfnDirBase = '/store/user/jschulte/limits/%s'%options.config
+
 with open(tempConfig,"w") as tempConfigFile:
     for line in configLines:
         line=line.replace("TOSED:SCRIPTARGS",scriptArgs)
@@ -46,6 +49,7 @@ with open(tempConfig,"w") as tempConfigFile:
         line=line.replace("TOSED:PRIMARYID",options.outputTag)
         line=line.replace("TOSED:SECONDARYID","test")
         line=line.replace("TOSED:REQUESTNAME",workingDir)
+        line=line.replace("TOSED:LFNDIRBASE",lfnDirBase)
 
         tempConfigFile.write(line)
 

@@ -6,10 +6,8 @@ CONFIG=$1
 LABEL=$2
 SRC=$3
 DATACARDSTUB=$4
-MIN=$5
-MAX=$6
-STEP=$7
-TAG=$8
+MASS=$5
+TAG=$6
 echo ${SRC}
 echo $DATACARDSTUB
 echo $MIN
@@ -19,7 +17,7 @@ echo $LABEL
 ARGS=("$@")
 LIBPART=""
 END=$#
-for ((i=8;i<END;i++)); do
+for ((i=6;i<END;i++)); do
     LIBPART+=" --LoadLibrary "
     echo ${ARGS[$i]}
     LIBPART+=${ARGS[$i]}
@@ -113,16 +111,14 @@ ls
 # e x e c u t e   j o b
 #----------------------------------------------------------
 #
-for ((i=MIN;i<=MAX;i=i+STEP)); do
 cd $SRC
-python runInterpretation.py -c $CONFIG -m $i -w -t ${LABEL:2} --signif
+python runInterpretation.py -c $CONFIG -m $MASS -w -t ${LABEL:2} --signif
 cd ${WORKDIR}
-export DATACARD=$DATACARDSTUB${i}.txt
+export DATACARD=$DATACARDSTUB${MASS}.txt
 echo $DATACARD
 for file in ${SRCDIR}/*$MASS*.root; do cp "$file" dataCards_${Name} ;done
 cp ${SRCDIR}/${DATACARD} .
-combine -M HybridNew $DATACARD -n $Name -m $i --signif  --pvalue --frequentist --testStat LHC -T 10000  $LIBPART
-done
+combine -M HybridNew $DATACARD -n $Name -m $MASS --signif  --pvalue --frequentist --testStat LHC -T 10000  $LIBPART
 
 
 #

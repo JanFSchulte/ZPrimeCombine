@@ -73,7 +73,6 @@ echo ------------------------------------------------------
 # s e t   t h e   r u n t i m e   e n v i r o n m e n t
 #----------------------------------------------------------
 #
-export SRCDIR=$SRC/dataCards_$Name
 export OUTDIR=$SRC/results_$Name
 if [[ $DATACARD == *"binned"* ]]
 then
@@ -116,16 +115,14 @@ ls
 #
 zero=0;
 cd $SRC
-python runInterpretation.py -c $CONFIG -m $MASS -w -t ${LABEL:2}
+python runInterpretation.py -c $CONFIG -m $MASS -w -t ${LABEL:2} --workDir $WORKDIR
 cd ${WORKDIR}
 echo $DATACARD
-for file in ${SRCDIR}/*$MASS*.root; do cp "$file" dataCards_${Name} ;done
-cp ${SRCDIR}/${DATACARD} .
 
 if [[ $NTOYSEXP -eq $zero ]]; then
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries $NTOYS --prior flat --rMax $RANGE $LIBPART
+combine -M MarkovChainMC dataCards_${Name}/${DATACARD} -n ${Name} -m $MASS -i $NINT --tries $NTOYS --prior flat --rMax $RANGE  $LIBPART
 else
-combine -M MarkovChainMC $DATACARD -n $Name -m $MASS -i $NINT --tries 1 -t $NTOYSEXP --prior flat --rMax $RANGE $LIBPART
+combine -M MarkovChainMC dataCards_${Name}/${DATACARD} -n $Name -m $MASS -i $NINT --tries $NTOYS -t $NTOYSEXP --prior flat --rMax $RANGE $LIBPART
 fi
 
 #

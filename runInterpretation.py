@@ -39,19 +39,19 @@ def getRange(mass,DM=False):
 		elif 300 <= mass <= 400:
 			return 800
 		elif 400 <= mass <= 500:
-			return 400
-		elif 500 < mass <= 600:
 			return 200
-		elif 600 < mass <= 700:
+		elif 500 < mass <= 600:
 			return 100
+		elif 600 < mass <= 700:
+			return 50
 		elif 700 < mass <= 800:
-			return 90
+			return 20
 		elif 800 < mass <= 1000:
-			return 50
+			return 30
 		elif 1000 < mass <= 2000:
-			return 50
+			return 20
 		else:
-			return 40
+			return 5
 
 
 
@@ -124,11 +124,13 @@ def runLocalSignificance(args,config,outDir,cardDir,binned):
                         if binned:
 				cardName = cardName.split(".")[0]+"_binned.txt"
                         if args.frequentist:	
-				subCommand = ["combine","-M","HybridNew","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue", "--frequentist", "--testStat","LHC","-T","1000"]
+				subCommand = ["combine","-M","HybridNew","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue", "--frequentist", "--testStat","LHC","-T","10000"]
                        	elif args.hybrid:
-				subCommand = ["combine","-M","HybridNew","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue","--testStat","LHC","-T","1000"]
-			else:	
-				subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue"]
+				subCommand = ["combine","-M","HybridNew","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue","--testStat","LHC","-T","10000"]
+			elif args.plc:	
+				subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue", "--usePLC","--rMax","%d"%getRange(mass,args.DM)]
+			else:
+				subCommand = ["combine","-M","ProfileLikelihood","%s"%cardName, "-n" "%s"%(args.config) , "-m","%d"%mass, "--signif" , "--pvalue","--rMax","%d"%getRange(mass,args.DM)]
 			for library in config.libraries:
                                 subCommand.append("--LoadLibrary")
                                 subCommand.append("userfuncs/%s"%library)
@@ -163,7 +165,6 @@ def submitLimits(args,config,outDir,binned,tag):
 
 	if not args.inject:
 		srcDir = os.getcwd()
-		print srcDir
 		os.chdir(srcDir+"/logFiles_%s"%args.config)
 	else:
 		srcDir = os.getcwd()
@@ -196,18 +197,25 @@ def submitLimits(args,config,outDir,binned,tag):
 			if config.submitTo == "Purdue":
 				if args.frequentist:
 					if args.expected:
-						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimitsFreq_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass,args.DM),timestamp,Libs)
+						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimitsFreq_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),timestamp,Libs)
+						subprocess.call(subCommand,shell=True)			
 					else:
-						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimitsFreq_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass,args.DM),timestamp,Libs)
+						for i in range(0,config.numToys):
+							subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimitsFreq_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,i,0,mass,getRange(mass),timestamp,Libs)
+							subprocess.call(subCommand,shell=True)			
 
 				else:
 					if args.expected:
-						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass,args.DM),timestamp,Libs)
+						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,config.exptToys,mass,getRange(mass),timestamp,Libs)
+						subprocess.call(subCommand,shell=True)			
 					else:
+						#for i in range(0,config.numToys):
 						subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimeLimits_PURDUE.job -F '%s %s %s %s %d %d %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,config.numInt,config.numToys,0,mass,getRange(mass),timestamp,Libs)
+						subprocess.call(subCommand,shell=True)	
+						import time
+						time.sleep(0.1)		
 
-				subprocess.call(subCommand,shell=True)			
-				time.sleep(0.5)
+			
 			mass += massRange[0]
 
 def submitPValues(args,config,outDir,binned,tag):
@@ -261,12 +269,23 @@ def submitPValues(args,config,outDir,binned,tag):
 			cardName = cardName + "binned.txt"
 		if config.submitTo == "Purdue":
 			if args.hybrid:
-				subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesHybrid_PURDUE.job -F '%s %s %s %s %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
+		                mass = massRange[1]
+                		while mass <= massRange[2]:
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesHybrid_PURDUE.job -F '%s %s %s %s %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,mass,timestamp,Libs)
+					mass += massRange[0]
+					subprocess.call(subCommand,shell=True)			
 			elif args.frequentist:	
-				subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesFreq_PURDUE.job -F '%s %s %s %s %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
-			else:	
+		                mass = massRange[1]
+                		while mass <= massRange[2]:
+					subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesFreq_PURDUE.job -F '%s %s %s %s %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,mass,timestamp,Libs)
+					mass += massRange[0]
+					subprocess.call(subCommand,shell=True)			
+			elif args.plc:	
+				subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValuesPLC_PURDUE.job -F '%s %s %s %s %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
+				subprocess.call(subCommand,shell=True)			
+			else:
 				subCommand = "qsub -l walltime=48:00:00 -q cms-express %s/submission/zPrimePValues_PURDUE.job -F '%s %s %s %s %d %d %d %s %s'"%(srcDir,args.config,name,srcDir,cardName,massRange[1],massRange[2],massRange[0],timestamp,Libs)
-			subprocess.call(subCommand,shell=True)			
+				subprocess.call(subCommand,shell=True)			
 	os.chdir(srcDir)	
 
 
@@ -278,11 +297,8 @@ def submitLimitsToCrab(args,config,cardDir):
 	if args.expected:
 		masses = config.massesExp
 	if args.mass > 0:
-		print "hier"
 		if args.expected:
-			print "hier"
 			for massRange in masses:
-				print masses
 				if args.mass >= massRange[1] and args.mass < massRange[2]:
 					masses = [massRange]
 					masses[0][1] = args.mass
@@ -292,12 +308,14 @@ def submitLimitsToCrab(args,config,cardDir):
 	workspaces = []
 	i = 0
  	for massRange in masses:
-		print masses
 		mass = massRange[1]
 		while mass < massRange[2]:
 			if len(config.channels) ==1:
 				command = ["text2workspace.py","%s/%s_%d.txt"%(cardDir,config.channels[0],mass)]
 				workspaces.append("%s/%s_%d.root"%(cardDir,config.channels[0],mass))
+				for library in config.libraries:		
+					command.append("--LoadLibrary")
+					command.append("userfuncs/%s"%library)
 				if args.redo:
 					subprocess.call(command)	
 				i += 1
@@ -305,7 +323,12 @@ def submitLimitsToCrab(args,config,cardDir):
 			else:
 				command = ["text2workspace.py","%s/%s_combined_%d.txt"%(cardDir,args.config,mass)]
 				workspaces.append("%s/%s_combined_%d.root"%(cardDir,args.config,mass))
-				subprocess.call(command)	
+				for library in config.libraries:		
+					command.append("--LoadLibrary")
+					command.append("userfuncs/%s"%library)
+	
+				if args.redo:
+					subprocess.call(command)	
 				i += 1
 				mass += massRange[0]			
 	libPart = []
@@ -314,13 +337,7 @@ def submitLimitsToCrab(args,config,cardDir):
 		libPart.append("userfuncs/"+lib.split("_")[0]+".cxx")
 		libPart.append("userfuncs/"+lib.split("_")[0]+".h")
 		libPart.append("userfuncs/"+lib.split(".")[0]+".d")
-	tarCommand = ['tar', '-cvf', 'gridPack.tar',"cfgs/","runInterpretation.py"] + workspaces + libPart
-	subprocess.call(tarCommand)
 
-	mvCmd = ["mv gridPack.tar submission/"]
-	subprocess.call(mvCmd,shell=True)
-
-	os.chdir("submission/")
 	nrJobs = 1
 
     	script="submitLimitCrabJob.py"
@@ -333,17 +350,37 @@ def submitLimitsToCrab(args,config,cardDir):
 				nJobs = str(massRange[3])
 				nToys = str(massRange[4])
 				nIter = str(massRange[5])
+				
+				workspace = "%s/%s_combined_%d.root"%(cardDir,args.config,mass)
+				
+				tarCommand = ['tar', '-cvf', 'gridPack.tar',"cfgs/","runInterpretation.py"] + [workspace] + libPart
+				subprocess.call(tarCommand)
+
+				mvCmd = ["mv gridPack.tar submission/"]
+				subprocess.call(mvCmd,shell=True)
+
+				os.chdir("submission/")
 
 				scriptArgs=["python",script,"--mass",str(mass),"--nIter",nIter,"--nrJobs",nJobs,"--nToys",nToys,"--gridPack","gridPack.tar","--outputTag",args.tag.split("_")[-1],"--crabConfig","crab_base.py","--config",args.config,"--expected","1"]
+				print scriptArgs
 				result = subprocess.Popen(scriptArgs,stdout=subprocess.PIPE).communicate()[0].splitlines()
 				for line in result:
     					print line
 
 				mass += massRange[0]			
+				os.chdir('../')
 	else:
 		nJobs = str(i)
 		nToys = str(config.numToys)
 		nIter = str(config.numInt)
+
+		tarCommand = ['tar', '-cvf', 'gridPack.tar',"cfgs/","runInterpretation.py"] + workspaces + libPart
+		subprocess.call(tarCommand)
+
+		mvCmd = ["mv gridPack.tar submission/"]
+		subprocess.call(mvCmd,shell=True)
+
+		os.chdir("submission/")
 
 		scriptArgs=["python",script,"--mass",str(mass),"--nIter",nIter,"--nrJobs",nJobs,"--nToys",nToys,"--gridPack","gridPack.tar","--outputTag",args.tag.split("_")[-1],"--crabConfig","crab_base.py","--config",args.config,"--expected","0"]
     		result = subprocess.Popen(scriptArgs,stdout=subprocess.PIPE).communicate()[0].splitlines()
@@ -376,6 +413,9 @@ def createInputs(args,config,cardDir):
 		if args.frequentist:
 			if not "-s" in call:
 				call.append("-s")
+		if not args.workDir == '':
+			call.append("--workDir")
+			call.append(args.workDir)
 		subprocess.call(call)
 
 	print "done!"
@@ -455,11 +495,13 @@ if __name__ == "__main__":
         parser.add_argument("--LEE", action="store_true", default=False, help="run significance on BG only toys to estimate LEE")
         parser.add_argument("--frequentist", action="store_true", default=False, help="use frequentist CLs limits")
         parser.add_argument("--hybrid", action="store_true", default=False, help="use frequenstist-bayesian hybrid methods")
+        parser.add_argument("--plc", action="store_true", default=False, help="use PLC for signifcance calculation")
         parser.add_argument("-e", "--expected", action="store_true", default=False, help="expected limits")
         parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
         parser.add_argument("--crab", action="store_true", default=False, help="submit to crab")
         parser.add_argument("-c", "--config", dest = "config", required=True, help="name of the congiguration to use")
         parser.add_argument("-t", "--tag", dest = "tag", default = "", help="tag to label output")
+        parser.add_argument( "--workDir", dest = "workDir", default = "", help="tells batch jobs where to put the datacards. Not for human use!")
         parser.add_argument("-m", "--mass", dest = "mass", default = -1,type=int, help="mass point")
 
         args = parser.parse_args()
@@ -476,7 +518,8 @@ if __name__ == "__main__":
 
 	from tools import getCardDir, getOutDir
 	cardDir = getCardDir(args,config)
-
+		
+		
 	summarizeConfig(config,args,cardDir)
 
 	if args.crab:

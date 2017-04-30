@@ -141,6 +141,7 @@ else:
 			massList.append(mass)
 			mass += massRange[0]		
 	args.mass = massList[massPoint-1]	
+	rMax = getRange(int(args.mass)) 
 	print "calculating expected limit for mass %s"%(str(int(args.mass)))
 	ws = "dataCards_%s_%s/%s_combined_%s.root"%(args.config,args.outputTag,args.config,str(int(args.mass)))
 	

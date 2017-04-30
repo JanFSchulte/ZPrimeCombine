@@ -23,7 +23,7 @@ config.Data.unitsPerJob = 1
 config.Data.totalUnits = TOSED:NRJOBS
 config.Data.outputPrimaryDataset = 'TOSED:PRIMARYID'
 config.Data.outputDatasetTag = 'TOSED:SECONDARYID'
-config.Data.outLFNDirBase = '/store/user/jschulte/limits/test'
+config.Data.outLFNDirBase = 'TOSED:LFNDIRBASE'
  
 config.section_("Site")
 config.Site.storageSite = "T2_DE_RWTH"

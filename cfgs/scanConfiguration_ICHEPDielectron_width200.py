@@ -4,7 +4,9 @@ systematics = ["sigEff","bkgUncert","massScale"]
 correlate = False
 #systematics = ["massScale","sigEff"]
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
-massesExp = [[100,400,600,200,5,500000], [100,600,1000,200,5,500000], [250,1000,2000,50,20,50000], [250,2000,4600,50,20,500000]]
+massesExp = [[50,1150,1260,100,10,500000], [125,1250,4600,100,10,500000]]
+#massesExp = [[50,400,1260,100,10,500000], [125,1250,4600,100,10,500000]]
+#massesExp = [[250,4500,4600,100,10,500000]]
 
 libraries = ["ZPrimeBkgPdf_cxx.so","PowFunc_cxx.so"]
 
@@ -13,7 +15,7 @@ channels = ["dielectron_EBEB","dielectron_EBEE"]
 numInt = 500000
 numToys = 10
 exptToys = 500
-width = 022
+width = 0.02
 submitTo = "Purdue"
 
 binWidth = 10

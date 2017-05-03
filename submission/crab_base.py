@@ -27,5 +27,5 @@ config.Data.outLFNDirBase = 'TOSED:LFNDIRBASE'
  
 config.section_("Site")
 config.Site.storageSite = "T2_DE_RWTH"
-
+config.Site.blacklist = ["T2_US_Nebraska","T2_US_Wisconsin","T2_US_Purdue","T3_UK_ScotGrid_GLA","T2_US_UCSD","T2_US_Caltech"]
 config.section_("User")

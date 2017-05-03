@@ -6,7 +6,7 @@ import subprocess
 import threading, Queue, time
 verbose = False
 users = {
-	"jan":["srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/jschulte/limits/test/"]
+	"jan":["srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/jschulte/limits/"]
 
 }
 
@@ -40,10 +40,10 @@ def removeFile(source, verbose=False):
 
 def copyFile(source, destination, user, verbose=False):
     if (verbose):
-        print 'gfal-copy  %s' + source + ' file:///' + destination
+        print 'gfal-copy -f  %s' + source + ' file:///' + destination
     #print 'srmcp srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv1?SFN=' + source + ' file:///' + destination
 #lcg-cp -v -b -D srmv2 SURL  file://local_file
-    subprocess.call(['gfal-copy %s'%source + ' file:///' + destination],shell=True,stdout=open(os.devnull, 'wb'))
+    subprocess.call(['gfal-copy -f %s'%source + ' file:///' + destination],shell=True,stdout=open(os.devnull, 'wb'))
     #time.sleep(1)
     return
 
@@ -147,7 +147,7 @@ def mergeExpected(configName,tag,config):
         for massRange in config.massesExp:
                 mass = massRange[1]
 		nJobs = massRange[3]
-                while mass < massRange[2]:
+                while mass <= massRange[2]:
 			fileList = []
 			for i in range(0,nJobs):
                         	fileName = path + "/expectedLimit_%s%s_%s_%d.root"%(configName,tag,mass,i+1)
@@ -160,7 +160,21 @@ def mergeExpected(configName,tag,config):
 			subprocess.call(command,stdout=open(os.devnull, 'wb'))
                         mass += massRange[0]
 
+def renameObs(configName,tag,config):
+
+	path = "results_%s%s/fromCRAB"%(configName,tag)
 	
+	i = 0	
+        for massRange in config.masses:
+                mass = massRange[1]
+                while mass < massRange[2]:
+                        fileName = path + "/observedLimit_%s%s_%d.root"%(configName,tag,i+1)
+			print "renaming result %d to mass point %d GeV"%(i+1,mass)	
+			command = ["cp","%s"%fileName,"%s/higgsCombine%s.MarkovChainMC.mH%d.root"%(path,configName+tag,mass)]
+			subprocess.call(command,stdout=open(os.devnull, 'wb'))
+                        mass += massRange[0]
+			i += 1
+
 
 
 def main():
@@ -170,7 +184,7 @@ def main():
         parser.add_argument("-c","--config", dest="config",default="", required=True, help='configuration name')
         parser.add_argument("-t","--tag",dest="tag", default='', help='tag')
         parser.add_argument("-u","--user",dest="user", default='', help='name of the user running the script')
-    	parser.add_argument("--exp",dest="exp", action="store_true", default=False, help='write expected limits')
+    	parser.add_argument("--obs",dest="obs", action="store_true", default=False, help='renamae obeserved limits')
     	parser.add_argument("--merge",dest="merge", action="store_true", default=False, help='merge expected limits')
         args = parser.parse_args()
 	
@@ -188,6 +202,9 @@ def main():
 	if args.merge:
 		mergeExpected(args.config,tag,config)
 		sys.exit(0)
+	if args.obs:
+		renameObs(args.config,tag,config)
+		sys.exit(0)
 	if not os.path.exists(outDir):
 		os.mkdir(outDir)
 	outDir+="/fromCRAB"
@@ -196,7 +213,7 @@ def main():
 
 
 	
-	path = users[args.user][0]+args.tag
+	path = users[args.user][0]+args.config+'/'+args.tag
 	print "Searching for limit results in %s"%path
 	
 	files =  getFileList(path,[])

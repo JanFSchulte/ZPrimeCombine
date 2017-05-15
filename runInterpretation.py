@@ -43,11 +43,11 @@ def getRange(mass,DM=False):
 		elif 500 < mass <= 600:
 			return 100
 		elif 600 < mass <= 700:
-			return 50
+			return 120
 		elif 700 < mass <= 800:
-			return 20
+			return 90
 		elif 800 < mass <= 1000:
-			return 30
+			return 50
 		elif 1000 < mass <= 2000:
 			return 20
 		else:

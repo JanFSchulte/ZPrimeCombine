@@ -100,7 +100,7 @@ def createWS(massVal,minNrEv,name,channel,width,correlateMass,dataFile="",CB=Tru
 		peakName = ""
 	effWidth = width + config.getResolution(massVal)
 	from tools import getMassRange
-	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
+	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile,200)	
 	ws = RooWorkspace(channel)
         massFullRange = RooRealVar('massFullRange','massFullRange',massVal, 200, 5000 )
         getattr(ws,'import')(massFullRange,ROOT.RooCmdArg())
@@ -198,7 +198,7 @@ def createHistograms(massVal,minNrEv,name,channel,width,correlateMass,binWidth,d
 		nBkgTotal = config.nBkg
 
 	from tools import getMassRange
-	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile)	
+	massLow, massHigh = getMassRange(massVal,minNrEv,effWidth,dataFile,200)	
 	if not correlateMass:
 		peakName = "_%s"%channel 
 	else:

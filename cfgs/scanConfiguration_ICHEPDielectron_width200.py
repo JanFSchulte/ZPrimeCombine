@@ -2,12 +2,8 @@
 leptons = "elel"
 systematics = ["sigEff","bkgUncert","massScale"]
 correlate = False
-#systematics = ["massScale","sigEff"]
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
-#massesExp = [[50,1150,1260,100,10,500000], [125,1250,4600,100,10,500000]]
-massesExp = [[50,600,910,50,20,500000]]
-#massesExp = [[50,400,1260,100,10,500000], [125,1250,4600,100,10,500000]]
-#massesExp = [[250,4500,4600,100,10,500000]]
+massesExp = [[50,400,1255,100,10,500000],[125,1375,4600,100,10,50000]]
 
 libraries = ["ZPrimeBkgPdf_cxx.so","PowFunc_cxx.so"]
 

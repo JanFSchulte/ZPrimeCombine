@@ -5,7 +5,6 @@ correlate = False
 #systematics = ["massScale","sigEff"]
 masses = [[5,400,1000], [10,1000,2000], [20,2000,4500]]
 
-#massesExp = [[100,450,955,100,10,500000], [50,1050,1250,100,10,500000],[250,1375,3376,100,10,50000]]
 massesExp = [[250,2000,4600,100,10,500000]]
 libraries = ["ZPrimeBkgPdf_cxx.so","ZPrimeMuonBkgPdf_cxx.so","PowFunc_cxx.so"]
 

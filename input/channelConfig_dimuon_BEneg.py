@@ -5,21 +5,11 @@ from ROOT import *
 
 nBkg = -1
 
-def provideSignalScaling(mass,DM=False):
+def provideSignalScaling(mass):
         nz   = 14980                      #From Alexander (80X prompt)
         nsig_scale = 1392.85843240991  # prescale/eff_z (123.685828798/0.0887) -->derives th
         eff = signalEff(mass)
-        
-	if DM:
-	    	xsecRatio = {}
-	    	fileZPrimePsi=open('tools/xsec_PSI.txt','r')
-    		for entries in fileZPrimePsi:
-        		entry=entries.split()
-        		xsecRatio[entry[0]] = float(entry[1])*1.3/1928 
-
-		result = nz*nsig_scale*eff*xsecRatio[str(mass)]
-	else:		
-		result = (nsig_scale*nz*eff)
+	result = (nsig_scale*nz*eff)
 
 	return result
 

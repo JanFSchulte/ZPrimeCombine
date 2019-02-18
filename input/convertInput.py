@@ -1,9 +1,10 @@
 
 def main():
-	fname = "dimuon_13TeV_FullDataset.txt" 
+	fname = "eventList.txt" 
 	with open(fname) as f:
     		content = f.readlines()	
 	for line in content:
-		print line.split(" ")[1]
+		if float(line.split()[2]) > 1.2:
+			print line.split()[1]
 
 main()

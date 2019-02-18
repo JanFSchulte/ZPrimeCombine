@@ -121,6 +121,7 @@ export DATACARD=$DATACARDSTUB${i}.txt
 echo $DATACARD
 for file in ${SRCDIR}/*$MASS*.root; do cp "$file" dataCards_${Name} ;done
 cp ${SRCDIR}/${DATACARD} .
+#for file in ${SRCDIR}/*$MASS*.txt; do rm "$file" ;done
 combine -M ProfileLikelihood $DATACARD -n $Name -m $i --signif  --pvalue $LIBPART
 done
 

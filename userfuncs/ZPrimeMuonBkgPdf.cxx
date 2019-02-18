@@ -56,5 +56,5 @@ ClassImp(ZPrimeMuonBkgPdf)
  Double_t ZPrimeMuonBkgPdf::evaluate() const 
  { 
    // ENTER EXPRESSION IN TERMS OF VARIABLE ARGUMENTS HERE 
-   return exp(bkg_a+mass*bkg_b+mass*mass*bkg_c+mass*mass*mass*bkg_d)*pow(mass,bkg_e)*(bkg_syst_a + bkg_syst_b*mass)*std::min(1.01696-7.73522E-5*mass+6.69239E-9*mass*mass,1.) ; 
+   return exp(bkg_a+mass*bkg_b+mass*mass*bkg_c+mass*mass*mass*bkg_d)*pow(mass,bkg_e)*(bkg_syst_a + bkg_syst_b*mass); 
  } 

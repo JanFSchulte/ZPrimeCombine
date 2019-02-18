@@ -117,8 +117,8 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned,bkgYields,sign
 				result += "  %.2f  "%(value)
 			#result += "  %.2f  "%(1.4)
 			else:
-				result += " %.2f"%(1.+bkgYields[i]**0.5/bkgYields[i])
-#				result += "  %.2f  "%(value)
+				#result += " %.4f"%(1.+bkgYields[i]**0.5/bkgYields[i])
+				result += "  %.2f  "%(value)
 	if uncert == "massScale":
 		if binned:
 			if correlate:
@@ -136,6 +136,29 @@ def getUncert(uncert, value, nBkgs, mass,channel,correlate,binned,bkgYields,sign
 			else:
 				name = "beta_peak_%s"%channel
 			result = "%s param 0 1" %name
+	if uncert == "res":
+		if binned:
+			print 'you were to lazy to implment this uncertainty for binned yet. Do that and come back'
+			sys.exit()	
+	
+		else:
+			if correlate:
+				name = "beta_res"
+			else:
+				name = "beta_res_%s"%channel
+			result = "%s param 0 1" %name
+	if uncert == "bkgParams":
+		if binned:
+			print 'you were to lazy to implment this uncertainty for binned yet. Do that and come back'
+			sys.exit()	
+	
+		else:
+			result = ""
+			for label in value:
+
+				name = "beta_%s_%s"%(label,channel)
+				result += "%s param 0 1\n" %name
+	
 	result += "\n"		
         return result
 		
@@ -186,12 +209,15 @@ def main():
 	parser.add_argument("-b", "--binned", action="store_true", default=False, help="use binned dataset")
 	parser.add_argument("--expected", action="store_true", default=False, help="write datacards for expected limit mass binning")
 	parser.add_argument("-i", "--inject", action="store_true", default=False, help="inject signal")
+	parser.add_argument("--recreateToys", action="store_true", default=False, help="recreate toy dataset")
 	parser.add_argument("-c", "--chan", dest = "chan", default="", help="name of the channel to use")
 	parser.add_argument("-o", "--options", dest = "config", default="", help="name of config file")
 	parser.add_argument("-m", "--mass", dest = "mass", default=-1,type=int, help="mass point")
 	parser.add_argument("-t", "--tag", dest = "tag", default="", help="tag")
 	parser.add_argument("-s", "--signif", action="store_true", default=False, help="write card for significances")
-	parser.add_argument("--DM", action="store_true", default=False, help="write cards for DM interpretation")
+        parser.add_argument( "--workDir", dest = "workDir", default = "", help="tells batch jobs where to put the datacards. Not for human use!")
+	parser.add_argument("--spin2", action="store_true", default=False, help="use spin2 efficiencies")
+	#parser.add_argument("--prepare", action="store_true", default=False, help="prepare LEE toys")
 				
 	args = parser.parse_args()	
 	tag = args.tag
@@ -218,16 +244,18 @@ def main():
 		if not os.path.isfile(injectedFile):
 			print "dataset file %s does not yet exist. Will generate a dataset to use"%injectedFile
 			name = "input/%s"%(args.chan)
-			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],0,config.signalInjection["CB"],tag=tag)
+			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],0,config.signalInjection["CB"],1,tag=tag)
 	elif args.inject:
 		if config.signalInjection["CB"]:
-			injectedFile = "input/%s_%d_%.3f_%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
+			injectedFile = "input/%s_%d_%.3f_%d_scale%d_CB.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["scale"])
 		else:	
-			injectedFile = "input/%s_%d_%.3f_%d.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"])
-		if not os.path.isfile(injectedFile):
-			print "dataset file %s does not yet exist. Will generate a dataset to use"%injectedFile
+			injectedFile = "input/%s_%d_%.3f_%d_scale%d.txt"%(args.chan,config.signalInjection["mass"],config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["scale"])
+		if not os.path.isfile(injectedFile) or args.recreateToys:
+			print "dataset file %s does not yet exist or you asked for it to be recreated. Will generate a dataset to use"%injectedFile
 			name = "input/%s"%(args.chan)
-			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["CB"])
+			createSignalDataset(config.signalInjection["mass"],name,args.chan,config.signalInjection["width"],config.signalInjection["nEvents"],config.signalInjection["CB"],config.signalInjection["scale"])
+	#if args.prepare:
+	#	exit()
 
 	if not os.path.exists(cardDir):
     		os.makedirs(cardDir)
@@ -244,6 +272,9 @@ def main():
 			nMasses +=1
 			mass += massRange[0]
 	i = 1
+	useShapeUncert = False
+	if "bkgParams" in config.systematics:
+		useShapeUncert = True
 	for massRange in masses:
 		mass = massRange[1]
 		while mass <= massRange[2]:
@@ -256,16 +287,16 @@ def main():
 			else:
 				name = "%s/%s_%d" % (cardDir,args.chan, mass)
 				if args.inject or "toy" in tag:	
-					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB)]
+					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,dataFile=injectedFile,CB=config.CB,useShapeUncert=useShapeUncert)]
 				else:	
-					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB)]
-			
-			if args.DM:
-				signalScale = module.provideSignalScaling(mass,DM=True)
-			else:	
-				signalScale = module.provideSignalScaling(mass)*1e-7
+					bkgYields = [createWS(mass,100, name,args.chan,config.width,config.correlate,CB=config.CB,useShapeUncert=useShapeUncert)]
+			scale=1
+			if args.inject:
+				scale = scale*config.signalInjection["scale"]	
+			signalScale = module.provideSignalScaling(mass,spin2=args.spin2)*1e-7*scale
 			nBkg = 1 # only one source of background supported at the moment
 
+						
 
 			channelDict = {}
 

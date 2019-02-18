@@ -12,6 +12,7 @@ NTOYSEXP=$7
 MASS=$8
 RANGE=$9
 TAG=${10}
+SPIN2=${11}
 echo ${SRC}
 echo $DATACARD
 echo $NINT
@@ -22,7 +23,7 @@ echo $TAG
 ARGS=("$@")
 LIBPART=""
 END=$#
-for ((i=10;i<END;i++)); do
+for ((i=11;i<END;i++)); do
     LIBPART+=" --LoadLibrary "
     echo ${ARGS[$i]}
     LIBPART+=${ARGS[$i]}
@@ -115,7 +116,11 @@ ls
 #
 zero=0;
 cd $SRC
+if [[ $SPIN2 -eq $zero ]]; then
 python runInterpretation.py -c $CONFIG -m $MASS -w -t ${LABEL:2} --workDir $WORKDIR
+else
+python runInterpretation.py -c $CONFIG -m $MASS -w -t ${LABEL:2} --workDir $WORKDIR --spin2
+fi
 cd ${WORKDIR}
 echo $DATACARD
 

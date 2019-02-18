@@ -25,6 +25,7 @@ public:
 	      RooAbsReal& _bkg_b,
 	      RooAbsReal& _bkg_c, 
 	      RooAbsReal& _bkg_d,
+	      RooAbsReal& _bkg_e,
 	      RooAbsReal& _bkg_syst_a,
 	      RooAbsReal& _bkg_syst_b);
   ZPrimeBkgPdf(const ZPrimeBkgPdf& other, const char* name=0) ;
@@ -38,6 +39,7 @@ protected:
   RooRealProxy bkg_b ;
   RooRealProxy bkg_c ; 
   RooRealProxy bkg_d ;
+  RooRealProxy bkg_e ;
   RooRealProxy bkg_syst_a ;
   RooRealProxy bkg_syst_b ;
   
@@ -52,7 +54,7 @@ protected:
       (mass-kCacheMin_)/step(); //meh good enough, if we're worrying about MeV precision on the mass well...
   }
   
-  double evalPdfNoNuisance()const{return exp(mass*bkg_a+mass*mass*bkg_b+mass*mass*mass*bkg_c)*pow(mass,bkg_d);}
+  double evalPdfNoNuisance()const{return bkg_a*exp(mass*bkg_b+mass*mass*bkg_c+mass*mass*mass*bkg_d)*pow(mass,bkg_e);}
   double evalPdfNuisance()const{return bkg_syst_a+bkg_syst_b*mass;}
   
   

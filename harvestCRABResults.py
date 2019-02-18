@@ -6,7 +6,8 @@ import subprocess
 import threading, Queue, time
 verbose = False
 users = {
-	"jan":["srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/jschulte/limits/"]
+	"jan":["gsiftp://cms-gridftp.rcac.purdue.edu/store/user/jschulte/limits/"]
+	#"jan":["dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/user/jschulte/limits/"]
 
 }
 
@@ -44,6 +45,7 @@ def copyFile(source, destination, user, verbose=False):
     #print 'srmcp srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv1?SFN=' + source + ' file:///' + destination
 #lcg-cp -v -b -D srmv2 SURL  file://local_file
     subprocess.call(['gfal-copy -f %s'%source + ' file:///' + destination],shell=True,stdout=open(os.devnull, 'wb'))
+    #subprocess.call(['srmcp -f %s'%source + ' file:///' + destination],shell=True,stdout=open(os.devnull, 'wb'))
     #time.sleep(1)
     return
 
@@ -120,7 +122,6 @@ def __getCommandOutput2(command):
 
 def getFileList(path,result):
 
-		
 	command = 'gfal-ls ' + path
 
     	output = __getCommandOutput2(command).splitlines()
@@ -130,7 +131,7 @@ def getFileList(path,result):
 			return result
 		if not "root" in output[0]:
 			for newPath in output:
-				if not "failed" in newPath:
+				if not "failed" in newPath and not "log" in newPath:
 					result = getFileList(path+"/"+newPath,result)
 			
 		else:
